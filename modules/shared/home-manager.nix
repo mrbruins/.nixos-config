@@ -11,6 +11,7 @@ let name = "Michiel Bruins";
     cdpath = [ "~/Projects" ];
     plugins = [
       {
+          # TODO: replace p10k with ohmyposh
           name = "powerlevel10k";
           src = pkgs.zsh-powerlevel10k;
           file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
@@ -53,16 +54,60 @@ let name = "Michiel Bruins";
       }
 
       # pnpm is a javascript package manager
-      alias pn=pnpm
-      alias px=pnpx
+      # alias pn=pnpm
+      # alias px=pnpx
 
       # Use difftastic, syntax-aware diffing
-      alias diff=difft
+      # alias diff=difft
 
       # Always color ls and group directories
-      alias ls='ls --color=auto'
+      # alias ls='ls --color=auto'
     '';
+    shellAliases = {
+      search = "rg -p --glob '!node_modules/*'";
+
+      # eza aliases to replace ls
+      ls = "eza -ha --icons --git --group-directories-first --time-style=long-iso";
+      lz = "eza --icons --git --group-directories-first --time-style=long-iso";
+      l = "eza -lbhF -a --icons --git --group-directories-first --time-style=long-iso";
+      ll = "eza -lah --icons --git --group-directories-first --time-style=long-iso";
+      llm = "eza -lah --icons --git --group-directories-first --time-style=long-iso --sort=modified";
+      la = "eza -lbhHigUmuSa --icons --git --group-directories-first --time-style=long-iso";
+      lx = "eza -lbhHigUmuSa@ --icons --git --group-directories-first --time-style=long-iso";
+      tree = "eza --tree";
+
+      # Directory traversal aliases
+      ".." = "z ..";
+      "..." = "z ../..";
+      "...." = "z ../../..";
+      "....." = "z ../../../..";
+      "......" = "z ../../../../..";
+      
+      # bat aliases
+      cat = "bat";
+      man = "batman";
+      diff = "batdiff";
+      # pn = "pnpm";
+      # px = "pnpx";
+      # diff = "difft";
+    };
   };
+  
+  # TODO: verify if this can be implemented as a zsh plugin
+  zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+    # TODO: check what options are available
+    options = [];
+  };
+
+  # TODO: verify if this can be implemented as a zsh plugin
+  bat = {
+    enable = true;
+    extraPackages = with pkgs.bat-extras; [ batdiff batman batgrep batwatch prettybat batpipe ];
+  };
+
+  # TODO: check if EZA should be configured here
 
   git = {
     enable = true;
@@ -196,7 +241,7 @@ let name = "Michiel Bruins";
      };
 
   alacritty = {
-    enable = true;
+    enable = false;
     settings = {
       cursor = {
         style = "Block";
@@ -263,6 +308,9 @@ let name = "Michiel Bruins";
         "/Users/${user}/.ssh/config_external"
       )
     ];
+    extraConfig = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin ''
+      IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    '';
     matchBlocks = {
       "github.com" = {
         identitiesOnly = true;
@@ -270,9 +318,11 @@ let name = "Michiel Bruins";
           (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
             "/home/${user}/.ssh/id_github"
           )
-          (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
-            "/Users/${user}/.ssh/id_github"
-          )
+          # TODO: check if this is needed on macOS as the SSH is in 1Password
+          # Move to secrets managment withing nix config to get rid of 1Password?
+          # (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
+          #   "/Users/${user}/.ssh/id_github"
+          # )
         ];
       };
     };

@@ -40,7 +40,13 @@ in
     # This message is safe to ignore. (https://github.com/dustinlyons/nixos-config/issues/83)
 
     masApps = {
-      # "wireguard" = 1451685025;
+      "Adguard for Safari" = 1440147259;
+      "AutoMute" = 1118136179;
+      "Color Picker" = 1545870783;
+      "Magnet" = 441258766;
+      #"Microsoft To Do" = 1274495053; use brew cask instead
+      "Pastebot" = 1179623856;
+      "PiPifier" = 1160374471;
     };
   };
 
@@ -73,17 +79,24 @@ in
       enable = true;
       username = user;
       entries = [
-        { path = "/Applications/Safari.app/"; }
+        { path = "/Applications/Slack.app"; }
         { path = "/System/Applications/Messages.app/"; }
-        { path = "/System/Applications/Notes.app/"; }
-        { path = "${pkgs.alacritty}/Applications/Alacritty.app/"; }
+        { path = "/System/Applications/Facetime.app/"; }
         { path = "/System/Applications/Music.app/"; }
         { path = "/System/Applications/Photos.app/"; }
-        { path = "/System/Applications/Photo Booth.app/"; }
-        { path = "/System/Applications/System Settings.app/"; }
+        { path = "/System/Applications/TV.app/"; }
+        { path = "/System/Applications/Home.app/"; }
+        { path = "/Applications/Safari.app/"; }
+        { path = "/Applications/Warp.app/"; }
+        { path = "/Applications/Microsoft Outlook.app/"; }
+        { path = "/Applications/Microsoft Teams.app/"; }
+        { path = "/Applications/Microsoft To Do.app/"; }
+        { path = "/Users/michielbruins/Applications/OI.app/"; }
+          
         {
-          path = toString myEmacsLauncher;
+          path = "${config.users.users.${user}.home}/Documents";
           section = "others";
+          options = "--sort name --view grid --display folder";
         }
         {
           path = "${config.users.users.${user}.home}/Downloads";

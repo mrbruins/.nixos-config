@@ -74,11 +74,11 @@ let user = "michielbruins"; in
       };
 
       dock = {
-        autohide = false;
-        show-recents = false;
+        autohide = true;
+        show-recents = true;
         launchanim = true;
         orientation = "bottom";
-        tilesize = 48;
+        tilesize = 30;
       };
 
       finder = {
