@@ -8,7 +8,7 @@ let name = "Michiel Bruins";
   zsh = {
     enable = true;
     autocd = false;
-    cdpath = [ "~/Projects" ];
+    # cdpath = [ "~/Projects" ];
     plugins = [
       {
           # TODO: replace p10k with ohmyposh
@@ -22,7 +22,7 @@ let name = "Michiel Bruins";
           file = "p10k.zsh";
       }
     ];
-    initExtraFirst = ''
+    initContent = lib.mkBefore ''
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
         . /nix/var/nix/profiles/default/etc/profile.d/nix.sh
