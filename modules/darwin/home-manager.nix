@@ -44,7 +44,6 @@ in
       "AutoMute" = 1118136179;
       "Color Picker" = 1545870783;
       "Magnet" = 441258766;
-      #"Microsoft To Do" = 1274495053; use brew cask instead
       "Pastebot" = 1179623856;
       "PiPifier" = 1160374471;
     };

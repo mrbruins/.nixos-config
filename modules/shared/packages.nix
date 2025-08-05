@@ -1,126 +1,82 @@
 { pkgs }:
 
 with pkgs; [
-  
-  # General packages for development and system management
-  alacritty
-  aspell
-  aspellDicts.en
-  bash-completion
-  bat
-  btop
-  coreutils
-  killall
-  neofetch
-  openssh
+  # System and Shell Utilities
+  bash-completion  # Bash completion scripts
+  bat             # Cat clone with syntax highlighting
+  btop        # Resource monitor
+  coreutils  # Core utilities
+  eza        # A modern replacement for 'ls'
+  htop        # System monitor
+  iftop       # Network bandwidth monitoring
+  killall    # Terminate processes by name
+  neofetch   # Display system information
+  speedtest-cli # CLI for testing internet speed
+  tmux        # Terminal multiplexer
+  tree        # Directory tree viewer
+
+  # Security and Encryption
+  age # Simple, modern and secure file encryption tool
+  # age-plugin-yubikey # YubiKey plugin for age
+  gnupg # GNU Privacy Guard for encryption and signing
+  # libfido2 # FIDO2 library for hardware security keys
+  openssh # SSH client and server
+
+  # Development Tools
+  gh          # GitHub CLI
+  jq          # JSON processor
+  ripgrep     # Search tool
   sqlite
-  wget
+
+  # Archive Management
+  unrar
+  unzip
   zip
 
-  # Encryption and security tools
-  age
-  age-plugin-yubikey
-  gnupg
-  libfido2
+  # Cloud and Containerization
+  # docker
+  # docker-compose
 
-  # Cloud-related tools and SDKs
-  docker
-  docker-compose
-
-  # Media-related packages
-  emacs-all-the-icons-fonts
-  dejavu_fonts
-  ffmpeg
-  fd
-  font-awesome
-  hack-font
-  noto-fonts
-  noto-fonts-emoji
-  meslo-lgs-nf
-
-  # Node.js development tools
+  # Programming Languages and Runtimes
+  ## Node.js
   nodejs_24
 
-  # Text and terminal utilities
-  htop
-  hunspell
-  iftop
-  jetbrains-mono
-  jq
-  ripgrep
-  tree
-  tmux
-  unrar
-  unzip
-  zsh-powerlevel10k
+  ## Python
+  python3 # Python 3 interpreter
+  virtualenv # Python virtual environment tool
 
-  # Python packages
-  python3
-  virtualenv
+  # Text Processing and Language Tools
+  # aspell       # Spell checker
+  # aspellDicts.en # English dictionary for aspell
+  # hunspell    # Spell checker
 
-   # General packages for development and system management
-  # alacritty
-  aspell
-  aspellDicts.en
-  bash-completion
-  # bat
-  btop
-  coreutils
-  gnupg
-  killall
-  neofetch
-  openssh
-  # sqlite
-  wget
-  zip
+  # File Management
+  fd # A simple, fast and user-friendly alternative to 'find'
+  wget # Retrieve files from the web
 
-  # Encryption and security tools
-  # age
-  # age-plugin-yubikey
-  # gnupg
-  # libfido2
-
-  # Cloud-related tools and SDKs
-  docker
-  docker-compose
-  #azure-cli
-  gh
-
-  # Media-related packages
-  # emacs-all-the-icons-fonts
-  # dejavu_fonts
-  # ffmpeg
-  fd
+  # Fonts and Typography
   font-awesome
   hack-font
-  # noto-fonts
-  # noto-fonts-emoji
   meslo-lgs-nf
+  noto-fonts
+  noto-fonts-emoji
 
-  # Node.js development tools
-  # nodePackages.npm # globally install npm
+  # Commented out packages for reference
+  # Development
+  # azure-cli
+  # nodePackages.npm
   # nodePackages.prettier
-  # nodejs
+  # python313
+  # python313Packages.virtualenv
 
-  # Text and terminal utilities
-  htop
-  # hunspell
-  iftop
+  # Terminal and UI
+  # alacritty
+  # emacs-all-the-icons-fonts
   # jetbrains-mono
-  jq
-  ripgrep
-  tree
-  tmux
-  unrar
-  unzip
-  eza
-  speedtest-cli
   # zoxide
   # zsh-powerlevel10k
 
-  # Python packages
-  # python313
-  # python313Packages.virtualenv # globally install virtualenv
-
-
+  # Media
+  # dejavu_fonts
+  # ffmpeg
 ]

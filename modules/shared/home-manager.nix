@@ -9,19 +9,19 @@ let name = "Michiel Bruins";
     enable = true;
     autocd = false;
     # cdpath = [ "~/Projects" ];
-    plugins = [
-      {
-          # TODO: replace p10k with ohmyposh
-          name = "powerlevel10k";
-          src = pkgs.zsh-powerlevel10k;
-          file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-      }
-      {
-          name = "powerlevel10k-config";
-          src = lib.cleanSource ./config;
-          file = "p10k.zsh";
-      }
-    ];
+    # plugins = [
+    #   {
+    #       # TODO: replace p10k with ohmyposh
+    #       name = "powerlevel10k";
+    #       src = pkgs.zsh-powerlevel10k;
+    #       file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+    #   }
+    #   {
+    #       name = "powerlevel10k-config";
+    #       src = lib.cleanSource ./config;
+    #       file = "p10k.zsh";
+    #   }
+    # ];
     initContent = lib.mkBefore ''
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
@@ -93,21 +93,17 @@ let name = "Michiel Bruins";
     };
   };
   
-  # TODO: verify if this can be implemented as a zsh plugin
   zoxide = {
     enable = true;
     enableZshIntegration = true;
-    # TODO: check what options are available
     options = [];
   };
 
-  # TODO: verify if this can be implemented as a zsh plugin
   bat = {
     enable = true;
     extraPackages = with pkgs.bat-extras; [ batdiff batman batgrep batwatch prettybat batpipe ];
   };
 
-  # TODO: check if EZA should be configured here
 
   git = {
     enable = true;
@@ -308,6 +304,7 @@ let name = "Michiel Bruins";
         "/Users/${user}/.ssh/config_external"
       )
     ];
+    # Enable SSH agent forwarding to 1Password on macOS
     extraConfig = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin ''
       IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
     '';
