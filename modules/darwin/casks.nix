@@ -43,7 +43,7 @@ _:
   "slack"
 
   # Productivity Tools
-  "adguard"
+  # "adguard"
   "notion"
   "the-unarchiver"
   "drawio"
