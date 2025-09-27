@@ -296,6 +296,7 @@ let name = "Michiel Bruins";
 
   ssh = {
     enable = true;
+    enableDefaultConfig = false;
     includes = [
       (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
         "/home/${user}/.ssh/config_external"
@@ -321,6 +322,12 @@ let name = "Michiel Bruins";
           #   "/Users/${user}/.ssh/id_github"
           # )
         ];
+      };
+      # Essential defaults only - minimal configuration
+      "*" = {
+        userKnownHostsFile = "~/.ssh/known_hosts";
+        forwardAgent = false;
+        addKeysToAgent = "no";
       };
     };
   };
