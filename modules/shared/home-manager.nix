@@ -8,20 +8,7 @@ let name = "Michiel Bruins";
   zsh = {
     enable = true;
     autocd = false;
-    # cdpath = [ "~/Projects" ];
-    # plugins = [
-    #   {
-    #       # TODO: replace p10k with ohmyposh
-    #       name = "powerlevel10k";
-    #       src = pkgs.zsh-powerlevel10k;
-    #       file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-    #   }
-    #   {
-    #       name = "powerlevel10k-config";
-    #       src = lib.cleanSource ./config;
-    #       file = "p10k.zsh";
-    #   }
-    # ];
+
     initContent = lib.mkBefore ''
       if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
         . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
