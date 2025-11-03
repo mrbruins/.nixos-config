@@ -79,7 +79,7 @@ let name = "Michiel Bruins";
 
   bat = {
     enable = true;
-    extraPackages = with pkgs.bat-extras; [ batdiff batman batgrep batwatch prettybat batpipe ];
+    extraPackages = with pkgs.bat-extras; [ batdiff batman batwatch prettybat batpipe ]; # TODO: Add batgrep againwhen bugs are fixed
   };
 
 
