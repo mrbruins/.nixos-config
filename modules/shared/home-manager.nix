@@ -86,12 +86,11 @@ let name = "Michiel Bruins";
   git = {
     enable = true;
     ignores = [ "*.swp" ];
-    userName = name;
-    userEmail = email;
-    lfs = {
-      enable = true;
-    };
-    extraConfig = {
+    settings = {
+      user = {
+        name = name;
+        email = email;
+      };
       init.defaultBranch = "main";
       core = {
 	      editor = "vim";
@@ -100,6 +99,9 @@ let name = "Michiel Bruins";
       commit.gpgsign = true;
       pull.rebase = true;
       rebase.autoStash = true;
+    };
+    lfs = {
+      enable = true;
     };
   };
 
@@ -288,19 +290,19 @@ let name = "Michiel Bruins";
       IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
     '';
     matchBlocks = {
-      "github.com" = {
-        identitiesOnly = true;
-        identityFile = [
-          (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
-            "/home/${user}/.ssh/id_github"
-          )
-          # TODO: check if this is needed on macOS as the SSH is in 1Password
-          # Move to secrets managment withing nix config to get rid of 1Password?
-          # (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
-          #   "/Users/${user}/.ssh/id_github"
-          # )
-        ];
-      };
+      # "github.com" = {
+      #   identitiesOnly = true;
+      #   identityFile = [
+      #     (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
+      #       "/home/${user}/.ssh/id_github"
+      #     )
+      #     # TODO: check if this is needed on macOS as the SSH is in 1Password
+      #     # Move to secrets managment withing nix config to get rid of 1Password?
+      #     # (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
+      #     #   "/Users/${user}/.ssh/id_github"
+      #     # )
+      #   ];
+      # };
       # Essential defaults only - minimal configuration
       "*" = {
         userKnownHostsFile = "~/.ssh/known_hosts";

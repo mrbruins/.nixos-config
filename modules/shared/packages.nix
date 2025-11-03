@@ -59,7 +59,7 @@ with pkgs; [
   hack-font
   meslo-lgs-nf
   noto-fonts
-  noto-fonts-emoji
+  noto-fonts-color-emoji
 
   # Commented out packages for reference
   # Development
