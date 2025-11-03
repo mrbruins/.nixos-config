@@ -38,7 +38,7 @@ let user = "michielbruins"; in
   environment.systemPackages = with pkgs; [
     # Comment out Emacs
     # emacs-unstable
-    agenix.packages."${pkgs.system}".default
+    agenix.packages."${pkgs.stdenv.hostPlatform.system}".default
   ] ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
 
   # Comment out Emacs daemon configuration
