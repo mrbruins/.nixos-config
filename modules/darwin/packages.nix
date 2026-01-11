@@ -5,7 +5,7 @@ let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
 shared-packages ++ [
   dockutil
   colima
-  cfspeedtest
+  # cfspeedtest # build broken
   # TODO: move node to shared-packages?
   nodejs_24
   dotnet-sdk_9
