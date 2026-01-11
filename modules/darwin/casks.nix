@@ -52,6 +52,7 @@ _:
   "protonvpn"
   "raycast"
   "todoist-app"
+  "bartender"
   
   # Entertainment Tools
   "vlc"

@@ -8,5 +8,5 @@ shared-packages ++ [
   cfspeedtest
   # TODO: move node to shared-packages?
   nodejs_24
-  dotnet-sdk_10
+  dotnet-sdk_9
 ]
