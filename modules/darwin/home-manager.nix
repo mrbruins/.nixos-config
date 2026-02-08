@@ -80,7 +80,6 @@ in
       enable = true;
       username = user;
       entries = [
-        { path = "/Applications/Slack.app"; }
         { path = "/System/Applications/Messages.app/"; }
         { path = "/System/Applications/Facetime.app/"; }
         { path = "/System/Applications/Music.app/"; }
@@ -93,7 +92,7 @@ in
         { path = "/Applications/Microsoft Teams.app/"; }
         { path = "/Applications/Microsoft To Do.app/"; }
         { path = "/Users/michielbruins/Applications/OI.app/"; }
-          
+        { path = "/Applications/Slack.app"; }
         {
           path = "${config.users.users.${user}.home}/Documents";
           section = "others";

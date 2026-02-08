@@ -65,4 +65,7 @@ _:
   "google-chrome"
   "microsoft-edge"
   "firefox@developer-edition"
+
+  # CAD tools
+  "autodesk-fusion"
 ]
