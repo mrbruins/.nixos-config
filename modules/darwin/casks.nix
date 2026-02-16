@@ -18,6 +18,7 @@ _:
   "insomnia"
   "mqttx"
   # "coder"
+  "charles"
 
   # File System
   # "macfuse"

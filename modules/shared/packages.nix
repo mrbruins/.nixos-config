@@ -63,7 +63,7 @@ with pkgs; [
 
   # Commented out packages for reference
   # Development
-  # azure-cli
+  azure-cli
   # nodePackages.npm
   # nodePackages.prettier
   # python313
