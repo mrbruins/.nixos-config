@@ -64,6 +64,7 @@ with pkgs; [
   # Commented out packages for reference
   # Development
   azure-cli
+  az-pim-cli
   # nodePackages.npm
   # nodePackages.prettier
   # python313
