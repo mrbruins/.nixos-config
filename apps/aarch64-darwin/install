@@ -97,6 +97,20 @@ KEY_CHOICE="${KEY_CHOICE:-c}"
 
 if [[ "$KEY_CHOICE" =~ ^[Cc]$ ]]; then
   bash "./apps/${ARCH}/create-keys"
+  _print ""
+  _print "${YELLOW}┌─────────────────────────────────────────────────────────────┐${NC}"
+  _print "${YELLOW}│  ACTION REQUIRED before continuing                          │${NC}"
+  _print "${YELLOW}│                                                             │${NC}"
+  _print "${YELLOW}│  Add your new public key to GitHub:                         │${NC}"
+  _print "${YELLOW}│    https://github.com/settings/ssh/new                     │${NC}"
+  _print "${YELLOW}│                                                             │${NC}"
+  _print "${YELLOW}│  Your public key is at: ~/.ssh/id_ed25519.pub               │${NC}"
+  _print "${YELLOW}│  Run:  cat ~/.ssh/id_ed25519.pub                            │${NC}"
+  _print "${YELLOW}│  Copy the output and paste it into GitHub.                  │${NC}"
+  _print "${YELLOW}└─────────────────────────────────────────────────────────────┘${NC}"
+  _print ""
+  _print "Press ${GREEN}Enter${NC} once you have added the key to GitHub to continue…"
+  read -r _
 elif [[ "$KEY_CHOICE" =~ ^[Uu]$ ]]; then
   bash "./apps/${ARCH}/copy-keys"
 else

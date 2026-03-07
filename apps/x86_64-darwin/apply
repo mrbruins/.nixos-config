@@ -67,12 +67,12 @@ cat > "$TEMP_FILE" << 'EOF'
     };
 EOF
 
-  # Check if the 'secrets' block already exists
-  if grep -q 'url = "git+ssh://git@github.com/%GITHUB_USER%/%GITHUB_SECRETS_REPO%.git"' "$FILE_PATH"; then
+  # Check if the 'secrets' block already exists (works with both placeholders and real values)
+  if grep -q 'secrets = {' "$FILE_PATH"; then
       echo "The 'secrets' block already exists in the file."
       rm "$TEMP_FILE"
       rm "${FILE_PATH}.bak"
-      exit 0
+      return 0
   fi
 
   # Find the start and end line numbers of the 'disko' block
