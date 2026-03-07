@@ -30,10 +30,37 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
     └── x86_64-linux/
 ```
 
-## Prerequisites
+## Bootstrap — fresh Mac
 
-- [Nix](https://nixos.org/download) with flakes enabled
-- macOS: [nix-darwin](https://github.com/LnL7/nix-darwin) bootstrapped
+The `install` script handles everything end-to-end on a brand-new Mac — no manual prerequisites needed.
+
+```bash
+# 1. Clone the repo (git must already be available via Xcode CLT — the script installs it if not)
+#    Or simply run the script directly if you already have curl and git:
+bash <(curl -fsSL https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/aarch64-darwin/install)
+```
+
+> **Intel Mac?** Use the `x86_64-darwin` variant:
+> ```bash
+> bash <(curl -fsSL https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/x86_64-darwin/install)
+> ```
+
+What the script does, step by step:
+
+| Step | Action |
+|---|---|
+| 1 | Install **Xcode Command Line Tools** (`xcode-select --install`) if absent |
+| 2 | Install **[Determinate Nix](https://github.com/DeterminateSystems/nix-installer)** if absent |
+| 3 | **Clone** this repo (prompts for destination, default `~/Developer/nixos-config`) |
+| 4 | Run **`apply`** — collects username, email, GitHub username & secrets repo name; performs token substitution across all config files |
+| 5 | **SSH keys** — create new ed25519 keys or copy existing keys from a USB drive |
+| 6 | Run **`build-switch`** — builds and activates the full nix-darwin configuration |
+
+After the script finishes, open a new terminal to pick up all shell changes.
+
+## Prerequisites (day-to-day)
+
+- [Determinate Nix](https://github.com/DeterminateSystems/nix-installer) with flakes enabled
 - SSH key at `~/.ssh/id_ed25519` (used as agenix identity for secrets)
 - SSH agent running with access to the private `nix-secrets` repo
 
@@ -42,7 +69,10 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
 ### macOS
 
 ```bash
-# First-time interactive setup
+# Full bootstrap on a fresh Mac
+nix run .#install
+
+# First-time setup on a machine that already has Nix
 nix run .#apply
 
 # Build and activate (day-to-day usage)
@@ -66,7 +96,7 @@ nix run .#build-switch
 
 ```bash
 nix run .#create-keys   # Generate a new age key
-nix run .#copy-keys     # Copy keys to the target machine
+nix run .#copy-keys     # Copy keys from USB to ~/.ssh
 nix run .#check-keys    # Verify key availability
 ```
 
