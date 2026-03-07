@@ -35,7 +35,7 @@ else
   XCLT_PKG=$(softwareupdate -l 2>/dev/null \
     | awk '/\*.*Command Line Tools for Xcode/ { $1=$1; print }' \
     | tail -1 \
-    | sed 's/^[[:space:]]*\* //')
+    | sed 's/^[[:space:]]*\* //; s/^Label: //')
   if [[ -z "$XCLT_PKG" ]]; then
     rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
     _err "Could not find Xcode Command Line Tools in softwareupdate catalog. Run 'softwareupdate -l' to check availability."
