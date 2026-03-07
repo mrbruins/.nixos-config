@@ -30,13 +30,19 @@ _step "Step 1/6 — Xcode Command Line Tools"
 if xcode-select -p &>/dev/null; then
   _ok "Xcode Command Line Tools already installed at $(xcode-select -p)"
 else
-  _print "Requesting Xcode Command Line Tools installation…"
-  xcode-select --install 2>/dev/null || true
-
-  _print "Waiting for Xcode Command Line Tools to finish installing…"
-  until xcode-select -p &>/dev/null; do
-    sleep 5
-  done
+  _print "Installing Xcode Command Line Tools unattended via softwareupdate…"
+  touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+  XCLT_PKG=$(softwareupdate -l 2>/dev/null \
+    | awk '/\*.*Command Line Tools for Xcode/ { $1=$1; print }' \
+    | tail -1 \
+    | sed 's/^[[:space:]]*\* //')
+  if [[ -z "$XCLT_PKG" ]]; then
+    rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+    _err "Could not find Xcode Command Line Tools in softwareupdate catalog. Run 'softwareupdate -l' to check availability."
+  fi
+  _print "Found package: $XCLT_PKG"
+  softwareupdate -i "$XCLT_PKG" --verbose
+  rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
   _ok "Xcode Command Line Tools installed"
 fi
 
