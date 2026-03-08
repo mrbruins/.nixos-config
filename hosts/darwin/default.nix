@@ -1,6 +1,11 @@
-{ agenix, config, pkgs, ... }:
+{ agenix, config, lib, pkgs, ... }:
 
-let user = "michielbruins"; in
+let
+  user = "michielbruins";
+  # Detect Determinate Nix at build time. nix-darwin is always built on the
+  # local machine, so pathExists reflects the actual runtime state.
+  isDeterminate = builtins.pathExists "/Library/LaunchDaemons/systems.determinate.nixd.plist";
+in
 
 {
 
@@ -11,20 +16,17 @@ let user = "michielbruins"; in
      agenix.darwinModules.default
   ];
 
-  # Setup user, packages, programs
-  nix = {
-    package = pkgs.nix;
+  # When Determinate is present, hand Nix installation management to it.
+  # The determinate module sets nix.enable = false, avoiding the conflict.
+  determinateNix.enable = isDeterminate;
 
+  # Standard Nix settings — only applied when nix-darwin is managing Nix
+  # (i.e. on a plain Nix install without Determinate).
+  nix = lib.mkIf (!isDeterminate) {
     settings = {
       trusted-users = [ "@admin" "${user}" ];
       substituters = [ "https://nix-community.cachix.org" "https://cache.nixos.org" ];
       trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
-    };
-
-    gc = {
-      automatic = true;
-      interval = { Weekday = 0; Hour = 2; Minute = 0; };
-      options = "--delete-older-than 30d";
     };
 
     extraOptions = ''
