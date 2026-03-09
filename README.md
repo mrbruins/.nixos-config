@@ -108,6 +108,63 @@ Provides `git`, `age`, and `age-plugin-yubikey`:
 nix develop
 ```
 
+## Shell (ZSH)
+
+ZSH is the default interactive shell on both macOS and NixOS. It is configured entirely through [Home Manager](https://github.com/nix-community/home-manager)'s `programs.zsh` option — no manual `.zshrc` required.
+
+| Layer | File | Purpose |
+|---|---|---|
+| Core (shared) | `modules/shared/home-manager.nix` | ZSH enable, aliases, init script, integrations |
+| macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
+| NixOS system | `hosts/nixos/default.nix` | System-level `programs.zsh.enable`, login shell |
+
+### Initialization
+
+The `initContent` block (prepended to `.zshrc`) handles:
+
+- **Nix daemon**: Sources `/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh` when present (needed on non-NixOS machines)
+- **PATH extensions**: `~/.pnpm-packages/bin`, `~/.npm-packages/bin`, `~/bin`, `~/.local/share/bin`, `~/.local/bin`
+- **`HISTIGNORE`**: Filters `pwd`, `ls`, and `cd` from history
+- **`shell()` function**: Shorthand for `nix-shell '<nixpkgs>' -A <package>`
+
+### Aliases
+
+| Alias | Expands to | Notes |
+|---|---|---|
+| `ls` | `eza -ha --icons --git …` | Hidden files, icons, git status |
+| `lz` | `eza --icons --git …` | No hidden files |
+| `l` | `eza -lbhF -a --icons …` | Long format |
+| `ll` | `eza -lah --icons …` | Long, all files |
+| `llm` | `eza -lah … --sort=modified` | Sorted by modification time |
+| `la` | `eza -lbhHigUmuSa …` | Extended metadata |
+| `lx` | `eza -lbhHigUmuSa@ …` | Extended metadata + xattrs |
+| `tree` | `eza --tree` | Directory tree |
+| `cat` | `bat` | Syntax-highlighted output |
+| `man` | `batman` | Man pages via bat |
+| `diff` | `batdiff` | Diff via bat |
+| `search` | `rg -p --glob '!node_modules/*'` | Ripgrep, node_modules excluded |
+| `..` … `......` | `z ..` … `z ../../../../..` | Zoxide-backed traversal |
+
+### Integrations
+
+- **[zoxide](https://github.com/ajeetdsouza/zoxide)** — smart `cd` replacement; enabled with `enableZshIntegration = true`, invoked with `z`
+- **[bat](https://github.com/sharkdp/bat)** + bat-extras — replaces `cat`, `man`, `diff`; includes `batdiff`, `batman`, `batwatch`, `prettybat`, `batpipe`
+
+### macOS-specific additions
+
+Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of the shared config:
+
+- Shell is set to `pkgs.zsh` in `users.users.${user}`
+- Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)
+- Session variable: `DOCKER_HOST=unix://$HOME/.lima/docker/sock/docker.sock`
+
+### NixOS-specific additions
+
+Defined in `hosts/nixos/default.nix`:
+
+- `programs.zsh.enable = true` enables ZSH system-wide (adds it to `/etc/shells`)
+- `users.users.${user}.shell = pkgs.zsh` sets it as the login shell
+
 ## Adding Packages
 
 | What | Where |

@@ -4,7 +4,8 @@ with pkgs;
 let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
 shared-packages ++ [
   dockutil
-  colima
+  lima
+  # colima
   # cfspeedtest # build broken
   # TODO: move node to shared-packages?
   nodejs_24
