@@ -16,7 +16,7 @@ with pkgs; [
   tree        # Directory tree viewer
 
   # Security and Encryption
-  age # Simple, modern and secure file encryption tool
+  age # Simple, modern and secure file encsryption tool
   # age-plugin-yubikey # YubiKey plugin for age
   gnupg # GNU Privacy Guard for encryption and signing
   # libfido2 # FIDO2 library for hardware security keys
@@ -36,8 +36,8 @@ with pkgs; [
   # Cloud and Containerization
   # docker
   # docker-compose
-   (azure-cli.withExtensions [ azure-cli-extensions.azure-devops ])
-  az-pim-cli
+  (azure-cli.withExtensions [ azure-cli-extensions.azure-devops ]) # Azure CLI with Azure DevOps extension
+  az-pim-cli # Azure AD Privileged Identity Management CLI
 
   # Programming Languages and Runtimes
   ## Node.js

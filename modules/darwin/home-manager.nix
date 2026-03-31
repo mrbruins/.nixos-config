@@ -66,7 +66,7 @@ in
 
         stateVersion = "23.11";
         sessionVariables = {
-          DOCKER_HOST = "unix://$HOME/.lima/docker/sock/docker.sock";
+          DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
         };
       };
       programs = lib.recursiveUpdate
