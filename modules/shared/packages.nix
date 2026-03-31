@@ -16,7 +16,7 @@ with pkgs; [
   tree        # Directory tree viewer
 
   # Security and Encryption
-  age # Simple, modern and secure file encryption tool
+  age # Simple, modern and secure file encsryption tool
   # age-plugin-yubikey # YubiKey plugin for age
   gnupg # GNU Privacy Guard for encryption and signing
   # libfido2 # FIDO2 library for hardware security keys
@@ -36,6 +36,8 @@ with pkgs; [
   # Cloud and Containerization
   # docker
   # docker-compose
+  (azure-cli.withExtensions [ azure-cli-extensions.azure-devops ]) # Azure CLI with Azure DevOps extension
+  az-pim-cli # Azure AD Privileged Identity Management CLI
 
   # Programming Languages and Runtimes
   ## Node.js
@@ -61,10 +63,11 @@ with pkgs; [
   noto-fonts
   noto-fonts-color-emoji
 
+  # AI Agents & Tools
+  github-copilot-cli # GitHub Copilot CLI for AI-assisted coding
+
   # Commented out packages for reference
   # Development
-  azure-cli
-  az-pim-cli
   # nodePackages.npm
   # nodePackages.prettier
   # python313

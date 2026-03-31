@@ -46,7 +46,7 @@ in
       "Magnet" = 441258766;
       "Pastebot" = 1179623856;
       "PiPifier" = 1160374471;
-      "uBlock Origin Lite" = 6745342698;
+      # "uBlock Origin Lite" = 6745342698;
     };
   };
 
@@ -65,8 +65,18 @@ in
         ];
 
         stateVersion = "23.11";
+        sessionVariables = {
+          DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
+        };
       };
-      programs = {} // import ../shared/home-manager.nix { inherit config pkgs lib; };
+      programs = lib.recursiveUpdate
+        (import ../shared/home-manager.nix { inherit config pkgs lib; })
+        {
+          zsh.shellAliases = {
+            docker = "lima nerdctl";
+            nerdctl = "lima nerdctl";
+          };
+        };
 
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344
