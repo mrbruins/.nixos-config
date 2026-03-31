@@ -46,7 +46,7 @@ in
       "Magnet" = 441258766;
       "Pastebot" = 1179623856;
       "PiPifier" = 1160374471;
-      "uBlock Origin Lite" = 6745342698;
+      # "uBlock Origin Lite" = 6745342698;
     };
   };
 

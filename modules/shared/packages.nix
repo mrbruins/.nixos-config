@@ -36,6 +36,8 @@ with pkgs; [
   # Cloud and Containerization
   # docker
   # docker-compose
+   (azure-cli.withExtensions [ azure-cli-extensions.azure-devops ])
+  az-pim-cli
 
   # Programming Languages and Runtimes
   ## Node.js
@@ -61,11 +63,11 @@ with pkgs; [
   noto-fonts
   noto-fonts-color-emoji
 
+  # AI Agents & Tools
+  github-copilot-cli # GitHub Copilot CLI for AI-assisted coding
+
   # Commented out packages for reference
   # Development
-  azure-cli
-  az-pim-cli
-  azure-cli-extensions.azure-devops
   # nodePackages.npm
   # nodePackages.prettier
   # python313
