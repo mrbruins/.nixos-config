@@ -155,7 +155,7 @@ The `initContent` block (prepended to `.zshrc`) handles:
 Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of the shared config:
 
 - Shell is set to `pkgs.zsh` in `users.users.${user}`
-- Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)
+- Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)`
 - Session variable: `DOCKER_HOST=unix://$HOME/.lima/docker/sock/docker.sock`
 
 ### NixOS-specific additions

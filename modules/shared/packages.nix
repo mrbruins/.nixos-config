@@ -65,6 +65,7 @@ with pkgs; [
   # Development
   azure-cli
   az-pim-cli
+  azure-cli-extensions.azure-devops
   # nodePackages.npm
   # nodePackages.prettier
   # python313
