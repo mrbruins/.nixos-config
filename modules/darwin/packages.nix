@@ -6,6 +6,9 @@ shared-packages ++ [
   dockutil
   docker-client  # Docker CLI for use with Lima socket
   lima
+
+  opencode
+  
   # colima
   # cfspeedtest # build broken
   # TODO: move node to shared-packages?

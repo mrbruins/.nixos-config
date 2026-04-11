@@ -10,7 +10,7 @@ with pkgs; [
   htop        # System monitor
   iftop       # Network bandwidth monitoring
   killall    # Terminate processes by name
-  neofetch   # Display system information
+  fastfetch   # Display system information
   speedtest-cli # CLI for testing internet speed
   tmux        # Terminal multiplexer
   tree        # Directory tree viewer
@@ -53,12 +53,11 @@ with pkgs; [
     azure-cli-extensions.fzf # Azure CLI extension for fuzzy searching Azure resources
     azure-cli-extensions.graphservices # Azure CLI extension for managing Microsoft Graph resources
     azure-cli-extensions.init # Azure CLI extension for initializing new projects with best practices
-    azure-cli-extensions.interactive # Azure CLI extension for interactive mode
     azure-cli-extensions.internet-analyzer # Azure CLI extension for analyzing internet connectivity to Azure
     azure-cli-extensions.ip-group # Azure CLI extension for managing Azure IP Groups
-    azure-cli-extensions.k8s-configuration # Azure CLI extension for managing Kubernetes configuration resources
-    azure-cli-extensions.k8s-extension # Azure CLI extension for managing Kubernetes extensions
-    azure-cli-extensions.k8s-runtime # Azure CLI extension for managing Kubernetes runtime resources
+    # azure-cli-extensions.k8s-configuration # Azure CLI extension for managing Kubernetes configuration resources
+    # azure-cli-extensions.k8s-extension # Azure CLI extension for managing Kubernetes extensions
+    # azure-cli-extensions.k8s-runtime # Azure CLI extension for managing Kubernetes runtime resources
     azure-cli-extensions.log-analytics # Azure CLI extension for managing Azure Log Analytics resources
     azure-cli-extensions.log-analytics-solution # Azure CLI extension for managing Azure Log Solutions resources
     azure-cli-extensions.mongo-db # Azure CLI extension for managing Azure Cosmos DB MongoDB resources
@@ -89,7 +88,7 @@ with pkgs; [
     azure-cli-extensions.virtual-network-manager # Azure CLI extension for managing Azure Virtual Network Manager resources
     azure-cli-extensions.virtual-wan # Azure CLI extension for managing Azure Virtual WAN resources
     azure-cli-extensions.webapp # Azure CLI extension for managing Azure Web Apps resources
-    azure-cli-extensions.webpubsub # Azure CLI extension for managing Azure Web PubSub resources
+    # azure-cli-extensions.webpubsub # Azure CLI extension for managing Azure Web PubSub resources
     azure-cli-extensions.workload-orchestration # Azure CLI extension for managing Azure Workload Orchestrator resources
     azure-cli-extensions.workloads # Azure CLI extension for managing Azure Workloads resources
     azure-cli-extensions.zones # Azure CLI extension for managing Azure Availability Zones resources

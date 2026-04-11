@@ -64,9 +64,9 @@ let name = "Michiel Bruins";
       "......" = "z ../../../../..";
       
       # bat aliases
-      cat = "bat";
+      # cat = "bat"; # alias interferes with AI agent tool use
       man = "batman";
-      diff = "batdiff";
+      # diff = "batdiff"; # alias interferes with AI agent tool use
       # pn = "pnpm";
       # px = "pnpx";
       # diff = "difft";
@@ -105,6 +105,7 @@ let name = "Michiel Bruins";
     lfs = {
       enable = true;
     };
+    signing.format = "openpgp";
   };
 
   vim = {
