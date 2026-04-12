@@ -26,6 +26,7 @@ with pkgs; [
   gh          # GitHub CLI
   jq          # JSON processor
   ripgrep     # Search tool
+  uv          # Fast Python package manager
   sqlite
 
   # Archive Management
@@ -103,8 +104,8 @@ with pkgs; [
   nodejs_24
 
   ## Python
-  python3 # Python 3 interpreter
-  virtualenv # Python virtual environment tool
+  python311 # Python 3.11 interpreter
+  # virtualenv # Python virtual environment tool
 
   # Text Processing and Language Tools
   # aspell       # Spell checker
@@ -112,6 +113,7 @@ with pkgs; [
   # hunspell    # Spell checker
 
   # File Management
+  curl # Data transfer tool for fetching remote resources
   fd # A simple, fast and user-friendly alternative to 'find'
   wget # Retrieve files from the web
 
@@ -141,5 +143,5 @@ with pkgs; [
 
   # Media
   # dejavu_fonts
-  # ffmpeg
+  ffmpeg
 ]
