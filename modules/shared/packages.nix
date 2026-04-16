@@ -24,6 +24,7 @@ with pkgs; [
 
   # Development Tools
   gh          # GitHub CLI
+  golangci-lint # Fast Go linters runner
   jq          # JSON processor
   ripgrep     # Search tool
   uv          # Fast Python package manager
