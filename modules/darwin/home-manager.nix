@@ -25,8 +25,14 @@ in
 
   homebrew = {
     enable = true;
+    # Keep nix-darwin aware of taps managed by nix-homebrew.
+    taps = builtins.attrNames config.nix-homebrew.taps;
     casks = pkgs.callPackage ./casks.nix {};
-    onActivation.cleanup = "uninstall";
+    onActivation = {
+      autoUpdate = false;
+      upgrade = false;
+      cleanup = "uninstall";
+    };
 
     # These app IDs are from using the mas CLI app
     # mas = mac app store

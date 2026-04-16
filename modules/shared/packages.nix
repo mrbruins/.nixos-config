@@ -107,6 +107,9 @@ with pkgs; [
   python311 # Python 3.11 interpreter
   # virtualenv # Python virtual environment tool
 
+  ## Go
+  go # Go programming language
+
   # Text Processing and Language Tools
   # aspell       # Spell checker
   # aspellDicts.en # English dictionary for aspell

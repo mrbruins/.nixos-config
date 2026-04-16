@@ -92,12 +92,7 @@
               nix-homebrew = {
                 inherit user;
                 enable = true;
-                taps = {
-                  "homebrew/homebrew-core" = homebrew-core;
-                  "homebrew/homebrew-cask" = homebrew-cask;
-                  "homebrew/homebrew-bundle" = homebrew-bundle;
-                };
-                mutableTaps = false;
+                mutableTaps = true;
                 autoMigrate = true;
               };
             }
