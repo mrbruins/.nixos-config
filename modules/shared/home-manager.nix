@@ -1,8 +1,6 @@
 { config, pkgs, lib, ... }:
 
-let name = "Michiel Bruins";
-    user = "michielbruins";
-    email = "1969831+mrbruins@users.noreply.github.com"; in
+let user = "michielbruins"; in
 {
   # Shared shell configuration
   zsh = {
@@ -88,11 +86,17 @@ let name = "Michiel Bruins";
   git = {
     enable = true;
     ignores = [ "*.swp" ];
+    includes = [
+      {
+        condition = "gitdir:~/dev/personal/";
+        path = "~/.config/git/config-personal";
+      }
+      {
+        condition = "gitdir:~/dev/Eneco/";
+        path = "~/.config/git/config-work";
+      }
+    ];
     settings = {
-      user = {
-        name = name;
-        email = email;
-      };
       init.defaultBranch = "main";
       core = {
 	      editor = "vim";
@@ -273,44 +277,6 @@ let name = "Michiel Bruins";
           cyan = "0x5fb3b3";
           white = "0xd8dee9";
         };
-      };
-    };
-  };
-
-  ssh = {
-    enable = true;
-    enableDefaultConfig = false;
-    includes = [
-      (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
-        "/home/${user}/.ssh/config_external"
-      )
-      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
-        "/Users/${user}/.ssh/config_external"
-      )
-    ];
-    # Enable SSH agent forwarding to 1Password on macOS
-    extraConfig = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin ''
-      IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-    '';
-    matchBlocks = {
-      # "github.com" = {
-      #   identitiesOnly = true;
-      #   identityFile = [
-      #     (lib.mkIf pkgs.stdenv.hostPlatform.isLinux
-      #       "/home/${user}/.ssh/id_github"
-      #     )
-      #     # TODO: check if this is needed on macOS as the SSH is in 1Password
-      #     # Move to secrets managment withing nix config to get rid of 1Password?
-      #     # (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin
-      #     #   "/Users/${user}/.ssh/id_github"
-      #     # )
-      #   ];
-      # };
-      # Essential defaults only - minimal configuration
-      "*" = {
-        userKnownHostsFile = "~/.ssh/known_hosts";
-        forwardAgent = false;
-        addKeysToAgent = "no";
       };
     };
   };
