@@ -30,28 +30,27 @@ in {
     text = ''
     ${if pkgs.stdenv.hostPlatform.isDarwin then ''
       Host github.com
-          HostName *.github.com
-          User git     
-          IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-          IdentitiesOnly yes
+        HostName github.com
+        User git     
+        IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        IdentitiesOnly yes
       '' else ""}
 
       Host eneco-bv.ghe.com
-          HostName eneco-bv.ghe.com
-          User git
-          IdentityFile ${enecoIdentityFile}
-          IdentitiesOnly yes
+        HostName eneco-bv.ghe.com
+        User git
+        IdentityFile ${enecoIdentityFile}
+        IdentitiesOnly yes
 
       ${if pkgs.stdenv.hostPlatform.isDarwin then ''
       Host m11s.nl
-          HostName *.m11s.nl
-          User git     
-          IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-          IdentitiesOnly yes
+        HostName m11s.nl
+        User git     
+        IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+        IdentitiesOnly yes
       '' else ""}
-      
-      Include ${externalSshConfig}
 
+      Include ${externalSshConfig}
 
       Host *
           UserKnownHostsFile ~/.ssh/known_hosts
