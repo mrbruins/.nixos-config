@@ -6,6 +6,7 @@ shared-packages ++ [
   dockutil
   docker-client  # Docker CLI for use with Lima socket
   lima
+  git-credential-manager
 
   opencode
   

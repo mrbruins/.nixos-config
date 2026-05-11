@@ -42,6 +42,12 @@ in {
         IdentityFile ${enecoIdentityFile}
         IdentitiesOnly yes
 
+      Host ssh.dev.azure.com
+        HostName ssh.dev.azure.com
+        User git
+        IdentityFile ${enecoIdentityFile}
+        IdentitiesOnly yes
+
       ${if pkgs.stdenv.hostPlatform.isDarwin then ''
       Host m11s.nl
         HostName m11s.nl

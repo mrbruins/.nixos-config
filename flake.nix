@@ -11,17 +11,14 @@
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     nix-homebrew = {
       url = "github:zhaofengli-wip/nix-homebrew";
+      inputs.brew-src.follows = "homebrew-brew";
     };
-    homebrew-bundle = {
-      url = "github:homebrew/homebrew-bundle";
+    homebrew-brew = {
+      url = "github:Homebrew/brew/5.1.10";
       flake = false;
     };
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    };
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
+    dynatrace-oss-tap = {
+      url = "github:dynatrace-oss/homebrew-tap";
       flake = false;
     };
     disko = {
@@ -33,7 +30,8 @@
       flake = false;
     };
   };
-  outputs = { self, darwin, determinate, nix-homebrew, homebrew-bundle, homebrew-core, homebrew-cask, home-manager, nixpkgs, disko, agenix, secrets } @inputs:
+  outputs = { self, darwin, determinate, nix-homebrew, homebrew-brew, dynatrace-oss-tap, home-manager, nixpkgs, disko, agenix, secrets } @inputs:
+  # outputs = { self, darwin, determinate, home-manager, nixpkgs, disko, agenix, secrets } @inputs:
     let
       user = "michielbruins";
       linuxSystems = [ "x86_64-linux" "aarch64-linux" ];
@@ -92,7 +90,10 @@
               nix-homebrew = {
                 inherit user;
                 enable = true;
-                mutableTaps = true;
+                taps = {
+                  "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
+                };
+                mutableTaps = false;
                 autoMigrate = true;
               };
             }

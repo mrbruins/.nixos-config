@@ -27,7 +27,8 @@ in
     enable = true;
     # Keep nix-darwin aware of taps managed by nix-homebrew.
     taps = builtins.attrNames config.nix-homebrew.taps;
-    casks = pkgs.callPackage ./casks.nix {};
+    brews = [];
+    casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" ];
     onActivation = {
       autoUpdate = false;
       upgrade = false;
@@ -37,10 +38,10 @@ in
     # These app IDs are from using the mas CLI app
     # mas = mac app store
     # https://github.com/mas-cli/mas
-    #
+    # 
     # $ nix shell nixpkgs#mas
     # $ mas search <app name>
-    #
+    # 
     # If you have previously added these apps to your Mac App Store profile (but not installed them on this system),
     # you may receive an error message "Redownload Unavailable with This Apple ID".
     # This message is safe to ignore. (https://github.com/dustinlyons/nixos-config/issues/83)
@@ -81,6 +82,14 @@ in
           zsh.shellAliases = {
             docker = "lima nerdctl";
             nerdctl = "lima nerdctl";
+          };
+          git.settings = {
+            "credential \"https://dev.azure.com\"" = {
+              helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
+              azreposCredentialType = "oauth";
+              credentialStore = "keychain";
+              useHttpPath = true;
+            };
           };
         };
 
