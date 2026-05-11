@@ -4,7 +4,7 @@ let
   user = "michielbruins";
   sshHome = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}/.ssh" else "/home/${user}/.ssh";
   externalSshConfig = "${sshHome}/config_external";
-  enecoIdentityFile = "~/.ssh/id_ed25519_eneco";
+  enecoIdentityFile = "~/.ssh/id_rsa_eneco";
 in {
 
   # ".ssh/id_github.pub" = {
