@@ -112,6 +112,7 @@ with pkgs; [
   go # Go programming language
 
   # Text Processing and Language Tools
+  pandoc # Universal document converter
   # aspell       # Spell checker
   # aspellDicts.en # English dictionary for aspell
   # hunspell    # Spell checker
