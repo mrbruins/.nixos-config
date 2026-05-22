@@ -27,7 +27,7 @@ in
     enable = true;
     # Keep nix-darwin aware of taps managed by nix-homebrew.
     taps = builtins.attrNames config.nix-homebrew.taps;
-    brews = [];
+    brews = ["mole"];
     casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" ];
     onActivation = {
       autoUpdate = false;
@@ -60,6 +60,7 @@ in
   # Enable home-manager
   home-manager = {
     useGlobalPkgs = true;
+    backupFileExtension = "backup";
     users.${user} = { pkgs, config, lib, ... }:{
       home = {
         enableNixpkgsReleaseCheck = false;

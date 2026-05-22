@@ -86,4 +86,11 @@ in {
           insteadOf = https://eneco-bv.ghe.com/
     '';
   };
+
+    ".npmrc" = {
+      text = ''
+        registry=https://registry.npmjs.org/
+        prefix=${if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}/.npm-packages" else "/home/${user}/.npm-packages"}
+      '';
+    };
 }
