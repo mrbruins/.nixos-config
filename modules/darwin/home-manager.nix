@@ -73,6 +73,7 @@ in
         stateVersion = "23.11";
         sessionVariables = {
           DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
+          SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
         };
       };
       programs = lib.recursiveUpdate
