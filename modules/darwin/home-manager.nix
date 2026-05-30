@@ -46,15 +46,13 @@ in
     # you may receive an error message "Redownload Unavailable with This Apple ID".
     # This message is safe to ignore. (https://github.com/dustinlyons/nixos-config/issues/83)
 
-    masApps = {
-      "Adguard for Safari" = 1440147259;
-      "AutoMute" = 1118136179;
-      "Color Picker" = 1545870783;
-      "Magnet" = 441258766;
-      "Pastebot" = 1179623856;
-      "PiPifier" = 1160374471;
-      # "uBlock Origin Lite" = 6745342698;
-    };
+    # masApps = {
+    #   "Adguard for Safari" = 1440147259;
+    #   "AutoMute" = 1118136179;
+    #   "Color Picker" = 1545870783;
+    #   "PiPifier" = 1160374471;
+    #   # "uBlock Origin Lite" = 6745342698;
+    # };
   };
 
   # Enable home-manager

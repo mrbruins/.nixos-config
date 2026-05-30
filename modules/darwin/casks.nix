@@ -12,13 +12,13 @@ _:
 
   # Development Tools
   "visual-studio-code"
-  "visual-studio-code@insiders"
+  # "visual-studio-code@insiders"
   "warp"
-  "tableplus"
+  # "tableplus"
   "insomnia"
-  "mqttx"
+  # "mqttx"
   # "coder"
-  "charles"
+  # "charles"
 
   # File System
   # "macfuse"

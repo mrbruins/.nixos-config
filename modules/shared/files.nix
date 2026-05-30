@@ -57,6 +57,11 @@ in {
       '' else ""}
 
       Include ${externalSshConfig}
+      Host unifi-gateway
+        HostName 192.168.2.1
+        User michielbruins
+        IdentityFile ~/.ssh/id_ed25519_agenix
+        IdentitiesOnly yes
 
       Host *
           UserKnownHostsFile ~/.ssh/known_hosts
@@ -71,8 +76,8 @@ in {
           name = mrbruins
           email = michiel@m11s.nl
 
-      [url "git@github.com:"]
-          insteadOf = https://github.com/
+      # [url "git@github.com:"]
+      #     insteadOf = https://github.com/
     '';
   };
 
@@ -81,9 +86,6 @@ in {
       [user]
           name = Michiel-Bruins
           email = michiel.bruins@eneco.com
-
-      [url "git@eneco-bv.ghe.com:"]
-          insteadOf = https://eneco-bv.ghe.com/
     '';
   };
 
