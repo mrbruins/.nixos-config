@@ -3,6 +3,17 @@
 let
   user = "michielbruins";
   xdg_configHome  = "/home/${user}/.config";
+  gitConfigBootstrap = ''
+    # This file stays writable so Git helpers can update global settings.
+    [include]
+      path = ~/.config/git/config-managed
+    [include]
+      path = ~/.config/git/config-platform
+    [includeIf "gitdir:~/dev/personal/"]
+      path = ~/.config/git/config-personal
+    [includeIf "gitdir:~/dev/Eneco/"]
+      path = ~/.config/git/config-work
+  '';
   shared-programs = import ../shared/home-manager.nix { inherit config pkgs lib; };
   shared-files = import ../shared/files.nix { inherit config pkgs; };
 
@@ -16,6 +27,17 @@ in
     file = shared-files // import ./files.nix { inherit user; };
     stateVersion = "26.05";
   };
+  home.activation.gitWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    git_config_dir="${config.home.homeDirectory}/.config/git"
+    git_config_file="$git_config_dir/config"
+
+    mkdir -p "$git_config_dir"
+    rm -f "$git_config_file"
+    cat > "$git_config_file" <<'EOF'
+${gitConfigBootstrap}
+EOF
+    chmod 600 "$git_config_file"
+  '';
 
   # Use a dark theme
   gtk = {

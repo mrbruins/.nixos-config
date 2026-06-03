@@ -2,6 +2,17 @@
 
 let
   user = "michielbruins";
+  gitConfigBootstrap = ''
+    # This file stays writable so Git helpers can update global settings.
+    [include]
+      path = ~/.config/git/config-managed
+    [include]
+      path = ~/.config/git/config-platform
+    [includeIf "gitdir:~/dev/personal/"]
+      path = ~/.config/git/config-personal
+    [includeIf "gitdir:~/dev/Eneco/"]
+      path = ~/.config/git/config-work
+  '';
   # Comment out Emacs launcher
   # myEmacsLauncher = pkgs.writeScript "emacs-launcher.command" ''
   #   #!/bin/sh
@@ -76,20 +87,23 @@ in
           SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
         };
       };
+      home.activation.gitWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        git_config_dir="${config.home.homeDirectory}/.config/git"
+        git_config_file="$git_config_dir/config"
+
+        mkdir -p "$git_config_dir"
+        rm -f "$git_config_file"
+        cat > "$git_config_file" <<'EOF'
+${gitConfigBootstrap}
+EOF
+        chmod 600 "$git_config_file"
+      '';
       programs = lib.recursiveUpdate
         (import ../shared/home-manager.nix { inherit config pkgs lib; })
         {
           zsh.shellAliases = {
             docker = "lima nerdctl";
             nerdctl = "lima nerdctl";
-          };
-          git.settings = {
-            "credential \"https://dev.azure.com\"" = {
-              helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
-              azreposCredentialType = "oauth";
-              credentialStore = "keychain";
-              useHttpPath = true;
-            };
           };
         };
 

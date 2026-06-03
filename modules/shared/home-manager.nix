@@ -82,36 +82,6 @@ let user = "michielbruins"; in
     extraPackages = with pkgs.bat-extras; [ batdiff batman batwatch prettybat batpipe ]; # TODO: Add batgrep againwhen bugs are fixed
   };
 
-
-  git = {
-    enable = true;
-    ignores = [ "*.swp" ];
-    includes = [
-      {
-        condition = "gitdir:~/dev/personal/";
-        path = "~/.config/git/config-personal";
-      }
-      {
-        condition = "gitdir:~/dev/Eneco/";
-        path = "~/.config/git/config-work";
-      }
-    ];
-    settings = {
-      init.defaultBranch = "main";
-      core = {
-	      editor = "vim";
-        autocrlf = "input";
-      };
-      commit.gpgsign = true;
-      pull.rebase = true;
-      rebase.autoStash = true;
-    };
-    lfs = {
-      enable = true;
-    };
-    signing.format = "openpgp";
-  };
-
   vim = {
     enable = true;
     plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-startify vim-tmux-navigator ];
