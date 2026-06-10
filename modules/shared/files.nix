@@ -47,7 +47,6 @@ in {
           name = mrbruins
           email = 1969831+mrbruins@users.noreply.github.com
           signingkey = ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCyC8wND8XWbh+iRDlmc8h/Eso47O0J27xd4I530VUI/ShONn/nFLH6u14jlIMHpSR5CHw0d0gPS5Bfj7Z8uCVutE5ywCC3PU/JcD5KqIyrftskJYYkziDAYHt4qlzRul6la2aFEYHnwtbznATaaTSy2kljeMfP9/3LubCXnlcn4EKChm9OgpHF3L74zQfOCVA5OMXmblopTBzneinhgyko0Qunt3woeTFDJ+BuFVhRLi0xMNShVxJO5BwoSxslEb9gmHzJzfULnopkichF2CQdabhau6yxo/6Q2fKZScbfGBx+bOHU5qwLkaDub6Qu085YV/f1KfUYcJOtvPoP1knChbQeGmwFJCNjn/sW0OmusLykIppo8QJA5QfZlXPzrvmzRN00txnHJFe80vN+IfEOC0ey95HxBFw3qoL/KubevZOGErw65vbhxQzRRyvXth/cTUBq3JRaxdNtPvDQSyXeNso2b22LfoZ1ML75ZS5/UEf9TFpqMIwyYEEI+48ZMHllkT+ACCH3HgFEJ5e66qHOpAchanLdZf0FFJYru1QCMtJlbBhwhKiJhTldsPfiA2pGReHsvdXNqC+4ISwTwb9Hb41448dAuGM7mDpgLlODvvR8oxkkxzaDyAQvmvlNbxhKMaa3Gl6M2JYqLFXr6zLtcQhHTuDfa6jK5iu7lIFq0w==
-
       [gpg]
         format = ssh
 
