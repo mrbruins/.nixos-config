@@ -107,7 +107,7 @@ with pkgs; [
 
   ## Python
   python311 # Python 3.11 interpreter
-  # virtualenv # Python virtual environment tool
+  virtualenv # Python virtual environment tool
 
   ## Go
   go # Go programming language

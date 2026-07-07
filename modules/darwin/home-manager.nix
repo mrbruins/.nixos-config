@@ -101,6 +101,9 @@ EOF
       programs = lib.recursiveUpdate
         (import ../shared/home-manager.nix { inherit config pkgs lib; })
         {
+          zsh.initContent = lib.mkAfter ''
+            eval "$(op completion zsh)"; compdef _op op
+          '';
           zsh.shellAliases = {
             docker = "lima nerdctl";
             nerdctl = "lima nerdctl";
