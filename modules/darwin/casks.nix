@@ -69,4 +69,7 @@ _:
 
   # CAD tools
   "autodesk-fusion"
+
+  # Utilities
+  "deskpad"
 ]
