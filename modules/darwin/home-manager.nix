@@ -43,7 +43,7 @@ in
     onActivation = {
       autoUpdate = false;
       upgrade = false;
-      cleanup = "uninstall";
+      cleanup = "uninstall"; # "uninstall" generates --force-cleanup which Homebrew removed; workaround until nix-darwin is fixed
     };
 
     # These app IDs are from using the mas CLI app
@@ -98,7 +98,7 @@ ${gitConfigBootstrap}
 EOF
         chmod 600 "$git_config_file"
       '';
-      programs = lib.recursiveUpdate
+      programs = lib.mkMerge [
         (import ../shared/home-manager.nix { inherit config pkgs lib; })
         {
           zsh.initContent = lib.mkAfter ''
@@ -108,7 +108,8 @@ EOF
             docker = "lima nerdctl";
             nerdctl = "lima nerdctl";
           };
-        };
+        }
+      ];
 
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344

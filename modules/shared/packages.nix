@@ -71,7 +71,7 @@ with pkgs; [
     azure-cli-extensions.purview # Azure CLI extension for managing Azure Purview resources
     azure-cli-extensions.pscloud # Azure CLI extension for managing PowerShell in Azure resources
     azure-cli-extensions.quota # Azure CLI extension for managing Azure Quota resources
-    azure-cli-extensions.redisenterprise # Azure CLI extension for managing Azure Redis Enterprise resources
+    # azure-cli-extensions.redisenterprise # Azure CLI extension for managing Azure Redis Enterprise resources (broken: redisenterprise-1.4.0 fails on python3.14)
     # azure-cli-extensions.reservation # Azure CLI extension for managing Azure Reservations resources
     # azure-cli-extensions.resource-graph # Azure CLI extension for managing Azure Resource Graph resources
     # azure-cli-extensions.scenario-guide # Azure CLI extension for managing Azure Scenario Guide resources
