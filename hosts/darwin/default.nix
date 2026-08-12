@@ -16,6 +16,32 @@ in
   # Determinate manages the Nix installation; disable nix-darwin's management.
   nix.enable = false;
 
+  services.privoxy = {
+    enable = true;
+
+    # Keep this separate from the kubectl tunnel on port 8888.
+    listenAddress = "127.0.0.1:8118";
+
+    config = ''
+      # Default: connect directly to the destination.
+      forward / .
+
+      # Snowflake
+      forward app.snowflake.com/                              127.0.0.1:8888
+      forward .app.snowflake.com/                             127.0.0.1:8888
+      forward eneco.west-europe.azure.snowflakecomputing.com/ 127.0.0.1:8888
+
+      # Airflow
+      forward airflow-test.code-102.ecsbdp.com/ 127.0.0.1:8888
+      forward airflow-acc.code-102.ecsbdp.com/  127.0.0.1:8888
+      forward airflow.code-002.ecsbdp.com/      127.0.0.1:8888
+
+      # Grafana
+      forward grafana.code-102.ecsbdp.com/ 127.0.0.1:8888
+      forward grafana.code-002.ecsbdp.com/ 127.0.0.1:8888
+    '';
+  };
+
   # Turn off NIX_PATH warnings now that we're using flakes
 
   # Load configuration that is shared across systems

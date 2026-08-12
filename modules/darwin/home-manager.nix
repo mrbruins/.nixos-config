@@ -43,7 +43,7 @@ in
     onActivation = {
       autoUpdate = false;
       upgrade = false;
-      cleanup = "uninstall"; # "uninstall" generates --force-cleanup which Homebrew removed; workaround until nix-darwin is fixed
+      cleanup = "none";
     };
 
     # These app IDs are from using the mas CLI app
@@ -77,6 +77,46 @@ in
         file = lib.mkMerge [
           sharedFiles
           additionalFiles
+          {
+            "bin/eneco-sfproxy" = {
+              executable = true;
+              text = ''
+                #!/bin/sh
+                set -eu
+
+                # The local tunnel must not itself use Privoxy.
+                unset http_proxy
+                unset https_proxy
+                unset HTTP_PROXY
+                unset HTTPS_PROXY
+                unset ALL_PROXY
+
+                context="''${1:-code-aks-a-102}"
+                namespace="''${2:-}"
+                target="''${3:-}"
+
+                if [ -z "$namespace" ] || [ -z "$target" ]; then
+                  cat >&2 <<'EOF'
+                Usage: eneco-sfproxy [context] <namespace> <target>
+
+                Example:
+                  eneco-sfproxy code-aks-a-102 data-platform svc/squid-proxy
+                EOF
+                  exit 1
+                fi
+
+                echo "Starting Eneco proxy tunnel"
+                echo "Context:   $context"
+                echo "Target:    $namespace/$target"
+                echo "Local:     127.0.0.1:8888"
+
+                exec kubectl \
+                  --context "$context" \
+                  --namespace "$namespace" \
+                  port-forward "$target" 8888:8888
+              '';
+            };
+          }
           # Comment out Emacs launcher
           # { "emacs-launcher.command".source = myEmacsLauncher; }
         ];
@@ -85,6 +125,18 @@ in
         sessionVariables = {
           DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
           SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+
+          # Local application-independent HTTP proxy.
+          http_proxy = "http://127.0.0.1:8118";
+          https_proxy = "http://127.0.0.1:8118";
+
+          # Some tools only inspect uppercase variable names.
+          HTTP_PROXY = "http://127.0.0.1:8118";
+          HTTPS_PROXY = "http://127.0.0.1:8118";
+
+          # Never proxy local and Azure instance metadata traffic.
+          no_proxy = "localhost,127.0.0.1,::1,169.254.169.254";
+          NO_PROXY = "localhost,127.0.0.1,::1,169.254.169.254";
         };
       };
       home.activation.gitWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
