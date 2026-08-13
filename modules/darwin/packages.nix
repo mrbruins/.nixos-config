@@ -15,4 +15,6 @@ shared-packages ++ [
   # TODO: move node to shared-packages?
   nodejs_24
   dotnet-sdk_10
+
+  yt-dlp
 ]
