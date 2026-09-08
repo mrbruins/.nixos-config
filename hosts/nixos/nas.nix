@@ -1,4 +1,9 @@
-{ agenix, pkgs, ... }:
+{
+  agenix,
+  disko,
+  pkgs,
+  ...
+}:
 
 {
   imports = [
@@ -6,6 +11,7 @@
     ../../modules/shared/ssh.nix
     ../../modules/nixos/common.nix
     ./nas/containers.nix
+    ./nas/disko.nix
     ./nas/hardware.nix
     ./nas/health.nix
     ./nas/identity.nix
@@ -17,6 +23,7 @@
     ./nas/virtualization.nix
     ../../modules/users/michielbruins/nixos.nix
     agenix.nixosModules.default
+    disko.nixosModules.disko
   ];
 
   boot = {

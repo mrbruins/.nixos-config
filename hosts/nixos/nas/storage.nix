@@ -3,18 +3,6 @@
 {
   networking.hostId = "11346ac0";
 
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/nixos";
-      fsType = "ext4";
-    };
-
-    "/boot" = {
-      device = "/dev/disk/by-label/ESP";
-      fsType = "vfat";
-    };
-  };
-
   boot = {
     supportedFilesystems = [ "zfs" ];
     zfs = {
