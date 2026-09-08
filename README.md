@@ -16,12 +16,14 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
 ```
 ├── flake.nix               # Entry point; inputs and system outputs
 ├── hosts/
-│   ├── darwin/             # macOS host config (networking, nix settings)
-│   └── nixos/              # NixOS host config (boot, disk, networking)
+│   ├── darwin/             # Explicit macOS host entry points
+│   └── nixos/              # Explicit NixOS host entry points
 ├── modules/
-│   ├── shared/             # Cross-platform config (packages, shell, dotfiles)
+│   ├── shared/             # Cross-platform system features
 │   ├── darwin/             # macOS-only config (casks, dock, secrets)
-│   └── nixos/              # NixOS-only config (packages, secrets)
+│   ├── nixos/              # NixOS features, including NAS services
+│   ├── home-manager/       # Reusable user-level features
+│   └── users/              # User-specific system and Home Manager profiles
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded)
 └── apps/                   # Build/deploy shell scripts per architecture
     ├── aarch64-darwin/
@@ -29,6 +31,32 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
     ├── aarch64-linux/
     └── x86_64-linux/
 ```
+
+## Configuration Architecture
+
+The flake uses a hybrid host-oriented and feature-oriented layout. Hosts remain
+explicit composition roots, while reusable concerns are gradually extracted as
+small modules. Imports are explicit; there is no module registry or automatic
+import tree.
+
+```mermaid
+flowchart TD
+  Flake[flake.nix] --> Mac[MacBook-Pro-Michiel]
+  Flake --> Nas[nas]
+  Mac --> Darwin[Darwin modules]
+  Mac --> Shared[Shared system features]
+  Mac --> DarwinHM[Darwin Home Manager profile]
+  Nas --> NixOS[NixOS common and networking]
+  Nas --> Storage[ZFS operations]
+  Nas --> Services[NAS services]
+  Nas --> Shared
+  Nas --> User[User profile]
+  User --> SharedHM[Shared Home Manager features]
+```
+
+The named outputs are `darwinConfigurations.MacBook-Pro-Michiel` and
+`nixosConfigurations.nas`. The legacy `darwinConfigurations.aarch64-darwin`
+alias remains available for compatibility.
 
 ## Bootstrap — fresh Mac
 
@@ -39,11 +67,6 @@ The `install` script handles everything end-to-end on a brand-new Mac — no man
 #    Or simply run the script directly if you already have curl and git:
 bash <(curl -fsSL https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/aarch64-darwin/install)
 ```
-
-> **Intel Mac?** Use the `x86_64-darwin` variant:
-> ```bash
-> bash <(curl -fsSL https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/x86_64-darwin/install)
-> ```
 
 What the script does, step by step:
 
@@ -92,6 +115,15 @@ nix run .#rollback
 nix run .#build-switch
 ```
 
+The `nas` configuration targets `x86_64-linux` and resolves to
+`nas.m11s.nl`. It enables ZFS support, scrub and trim timers, SSH key-only
+access, Samba, NFS, service discovery, and SMART monitoring. It expects the
+root filesystem at the existing `zroot/root` ZFS dataset. Pool creation,
+partitioning, data datasets, shares, and generated hardware configuration are
+intentionally not declared: add those after confirming the replacement
+server's device IDs and desired storage topology. The existing ext4 disko
+template is not imported by `nas`.
+
 ### Key management
 
 ```bash
@@ -116,7 +148,8 @@ ZSH is the default interactive shell on both macOS and NixOS. It is configured e
 |---|---|---|
 | Core (shared) | `modules/shared/home-manager.nix` | ZSH enable, aliases, init script, integrations |
 | macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
-| NixOS system | `hosts/nixos/default.nix` | System-level `programs.zsh.enable`, login shell |
+| Shared system | `modules/shared/shell.nix` | System-level `programs.zsh.enable` |
+| NAS user | `modules/users/michielbruins/home-manager.nix` | Server-safe Home Manager composition |
 
 ### Initialization
 
@@ -160,7 +193,7 @@ Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of
 
 ### NixOS-specific additions
 
-Defined in `hosts/nixos/default.nix`:
+Defined by the shared shell and NAS user modules:
 
 - `programs.zsh.enable = true` enables ZSH system-wide (adds it to `/etc/shells`)
 - `users.users.${user}.shell = pkgs.zsh` sets it as the login shell

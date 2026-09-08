@@ -58,16 +58,17 @@ with pkgs; [
 
   # Cloud & Azure
   (azure-cli.withExtensions [
-    azure-cli-extensions.azure-devops
     azure-cli-extensions.account
     azure-cli-extensions.ad
     azure-cli-extensions.aks-preview
     azure-cli-extensions.application-insights
+    azure-cli-extensions.azure-devops
+    azure-cli-extensions.azure-firewall
     # azure-cli-extensions.cosmosdb-preview
     azure-cli-extensions.costmanagement
     azure-cli-extensions.databricks
     # azure-cli-extensions.dependency-map
-    azure-cli-extensions.deploy-to-azure
+    # azure-cli-extensions.deploy-to-azure  # broken: imports pkg_resources, which is unavailable on python3.14
     # azure-cli-extensions.eventgrid
     # azure-cli-extensions.footprint
     # azure-cli-extensions.front-door
@@ -91,7 +92,7 @@ with pkgs; [
     azure-cli-extensions.quota
     # azure-cli-extensions.redisenterprise  # broken: redisenterprise-1.4.0 fails on python3.14
     # azure-cli-extensions.reservation
-    # azure-cli-extensions.resource-graph
+    azure-cli-extensions.resource-graph
     # azure-cli-extensions.scenario-guide
     azure-cli-extensions.self-help
     azure-cli-extensions.sentinel
