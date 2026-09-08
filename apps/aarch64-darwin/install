@@ -19,7 +19,6 @@ fi
 # ── Detect architecture ──────────────────────────────────────────────────────
 case "$(uname -m)" in
   arm64)  ARCH="aarch64-darwin" ;;
-  x86_64) ARCH="x86_64-darwin" ;;
   *)      _err "Unsupported architecture: $(uname -m)" ;;
 esac
 

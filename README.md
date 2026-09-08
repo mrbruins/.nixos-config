@@ -24,10 +24,9 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
 │   ├── nixos/              # NixOS features, including NAS services
 │   ├── home-manager/       # Reusable user-level features
 │   └── users/              # User-specific system and Home Manager profiles
-├── overlays/               # Custom nixpkgs overlays (auto-loaded)
+├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
 └── apps/                   # Build/deploy shell scripts per architecture
     ├── aarch64-darwin/
-    ├── x86_64-darwin/
     ├── aarch64-linux/
     └── x86_64-linux/
 ```

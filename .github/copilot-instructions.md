@@ -78,7 +78,7 @@ age.secrets."my-secret" = {
 - macOS-only CLI tool → append to `modules/darwin/packages.nix`
 - macOS GUI app → append to `modules/darwin/casks.nix`
 - NixOS-only tool → append to `modules/nixos/packages.nix`
-- Custom derivation or fork → create a new overlay in `overlays/` (see `overlays/10-feather-font.nix` as a reference)
+- Custom derivation or fork → create a new overlay in `overlays/`
 
 ## Nixpkgs Channel
 
