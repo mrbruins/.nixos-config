@@ -5,16 +5,21 @@
     ../../modules/shared
     ../../modules/shared/ssh.nix
     ../../modules/nixos/common.nix
-    ../../modules/nixos/networking.nix
-    ../../modules/nixos/storage.nix
-    ../../modules/nixos/nas-services.nix
-    ../../modules/nixos/secrets.nix
+    ./nas/containers.nix
+    ./nas/hardware.nix
+    ./nas/health.nix
+    ./nas/identity.nix
+    ./nas/networking.nix
+    ./nas/samba.nix
+    ./nas/secrets.nix
+    ./nas/snapshots.nix
+    ./nas/storage.nix
+    ./nas/virtualization.nix
     ../../modules/users/michielbruins/nixos.nix
     agenix.nixosModules.default
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot = {
         enable = true;

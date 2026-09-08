@@ -6,10 +6,20 @@ let
   ];
 in
 {
+  users.groups = {
+    media.gid = 3001;
+    michielbruins.gid = 3000;
+  };
+
   users.users = {
     michielbruins = {
       isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      uid = 3000;
+      group = "michielbruins";
+      extraGroups = [
+        "media"
+        "wheel"
+      ];
       shell = pkgs.zsh;
       openssh.authorizedKeys.keys = authorizedKeys;
     };
