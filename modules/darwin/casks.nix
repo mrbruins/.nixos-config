@@ -36,6 +36,7 @@ _:
   "microsoft-excel"
   "microsoft-word"
   "microsoft-powerpoint"
+  "microsoft-onenote"
   "onedrive"
 
   # Communication Tools

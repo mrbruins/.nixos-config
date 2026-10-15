@@ -116,6 +116,7 @@
               taps = {
                 "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
               };
+              extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
               mutableTaps = false;
               autoMigrate = true;
             };

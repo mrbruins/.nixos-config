@@ -27,6 +27,7 @@ with pkgs; [
   git
   gh              # GitHub CLI
   golangci-lint   # Fast Go linters runner
+  devenv          # Reproducible development environments
   jq              # JSON processor
   ripgrep
   fd              # Fast alternative to 'find'
