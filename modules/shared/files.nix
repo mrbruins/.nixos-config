@@ -27,17 +27,10 @@ in {
         ForwardAgent no
       '' else ""}
 
-      # Host eneco-bv.ghe.com
-      #   HostName eneco-bv.ghe.com
-      #   User git
-      #   IdentityFile ${enecoIdentityFile}
-      #   IdentitiesOnly yes
-
-      # Host ssh.dev.azure.com
-      #   HostName ssh.dev.azure.com
-      #   User git
-      #   IdentityFile ${enecoIdentityFile}
-      #   IdentitiesOnly yes
+      Host ssh.dev.azure.com
+        User git
+        IdentityFile ~/.ssh/1Password/SHA256_GypS4+jrUjxP+SppxLX3M8tr+pwYlziZgUyWyR0nGnU.pub
+        IdentitiesOnly yes
     '';
   };
 
@@ -99,11 +92,14 @@ in {
 
   ".config/git/config-platform" = {
     text = if pkgs.stdenv.hostPlatform.isDarwin then ''
-      [credential "https://dev.azure.com"]
-        helper = ${pkgs.git-credential-manager}/bin/git-credential-manager
-        azreposCredentialType = oauth
-        credentialStore = keychain
-        useHttpPath = true
+      [credential]
+        helper =
+
+      [url "ssh://git@github.com/"]
+        insteadOf = https://github.com/
+
+      [url "ssh://eneco-bv@eneco-bv.ghe.com/"]
+        insteadOf = https://eneco-bv.ghe.com/
     '' else "";
   };
 
