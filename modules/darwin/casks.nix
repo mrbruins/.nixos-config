@@ -19,6 +19,7 @@ _:
   # "mqttx"
   # "coder"
   # "charles"
+  "t3-code@nightly"
 
   # File System
   # "macfuse"
