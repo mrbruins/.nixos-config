@@ -49,7 +49,6 @@ _:
   # "adguard"
   "notion"
   "the-unarchiver"
-  "drawio"
   "readdle-spark"
   "tailscale-app"
   "protonvpn"

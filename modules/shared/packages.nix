@@ -54,20 +54,18 @@ with pkgs; [
   python311
   virtualenv
 
-  ## Go
-  go
-
+  
   # Cloud & Azure
   (azure-cli.withExtensions [
     azure-cli-extensions.account
     azure-cli-extensions.ad
-    azure-cli-extensions.aks-preview
+    # azure-cli-extensions.aks-preview
     azure-cli-extensions.application-insights
     azure-cli-extensions.azure-devops
     azure-cli-extensions.azure-firewall
     # azure-cli-extensions.cosmosdb-preview
     azure-cli-extensions.costmanagement
-    azure-cli-extensions.databricks
+    # azure-cli-extensions.databricks
     # azure-cli-extensions.dependency-map
     # azure-cli-extensions.deploy-to-azure  # broken: imports pkg_resources, which is unavailable on python3.14
     # azure-cli-extensions.eventgrid
@@ -76,8 +74,8 @@ with pkgs; [
     azure-cli-extensions.fzf
     # azure-cli-extensions.graphservices
     azure-cli-extensions.init
-    azure-cli-extensions.internet-analyzer
-    azure-cli-extensions.ip-group
+    # azure-cli-extensions.internet-analyzer
+    # azure-cli-extensions.ip-group
     # azure-cli-extensions.k8s-configuration
     # azure-cli-extensions.k8s-extension
     # azure-cli-extensions.k8s-runtime
@@ -85,8 +83,8 @@ with pkgs; [
     azure-cli-extensions.log-analytics-solution
     # azure-cli-extensions.mongo-db
     # azure-cli-extensions.monitor-control-service
-    azure-cli-extensions.networkcloud
-    azure-cli-extensions.notification-hub
+    # azure-cli-extensions.networkcloud
+    # azure-cli-extensions.notification-hub
     azure-cli-extensions.portal
     azure-cli-extensions.purview
     azure-cli-extensions.pscloud
@@ -96,10 +94,10 @@ with pkgs; [
     azure-cli-extensions.resource-graph
     # azure-cli-extensions.scenario-guide
     azure-cli-extensions.self-help
-    azure-cli-extensions.sentinel
+    # azure-cli-extensions.sentinel
     azure-cli-extensions.sftp
     azure-cli-extensions.ssh
-    azure-cli-extensions.staticwebapp
+    # azure-cli-extensions.staticwebapp
     azure-cli-extensions.storage-actions
     azure-cli-extensions.storage-blob-preview
     azure-cli-extensions.storage-discovery
@@ -110,7 +108,7 @@ with pkgs; [
     azure-cli-extensions.support
     azure-cli-extensions.virtual-network-manager
     azure-cli-extensions.virtual-wan
-    azure-cli-extensions.webapp
+    # azure-cli-extensions.webapp
     # azure-cli-extensions.webpubsub
     azure-cli-extensions.workload-orchestration
     azure-cli-extensions.workloads
