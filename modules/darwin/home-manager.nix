@@ -103,6 +103,7 @@ EOF
           zsh.shellAliases = {
             docker = "lima nerdctl";
             nerdctl = "lima nerdctl";
+            truenas-docker = "env -u DOCKER_HOST -u DOCKER_CONTEXT ${pkgs.docker}/bin/docker --context truenas";
           };
         }
       ];

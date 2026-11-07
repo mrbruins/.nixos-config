@@ -5,6 +5,6 @@ let
 in
 {
   home.file = lib.filterAttrs
-    (name: _: lib.hasPrefix ".ssh/" name || lib.hasPrefix ".config/ssh/" name)
+    (name: _: lib.hasPrefix ".ssh/" name || lib.hasPrefix ".config/ssh/" name || lib.hasPrefix ".config/git/" name)
     sharedFiles;
 }
