@@ -129,6 +129,22 @@
         "type": "github"
       }
     },
+    "devvmhq-tap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794075550,
+        "narHash": "sha256-3W5bkqWX4pftq4tS+atkG3U2yn7KtWJAQ4G+4pdTG9Q=",
+        "owner": "devvmhq",
+        "repo": "homebrew-tap",
+        "rev": "08f0661c4416f134126cc0d19095a9944e1e3c75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "devvmhq",
+        "repo": "homebrew-tap",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
