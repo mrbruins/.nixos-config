@@ -19,11 +19,15 @@
       inputs.brew-src.follows = "homebrew-brew";
     };
     homebrew-brew = {
-      url = "github:Homebrew/brew/5.1.10";
+      url = "github:Homebrew/brew/7.0.12";
       flake = false;
     };
     dynatrace-oss-tap = {
       url = "github:dynatrace-oss/homebrew-tap";
+      flake = false;
+    };
+    devvmhq-tap = {
+      url = "github:devvmhq/homebrew-tap";
       flake = false;
     };
     disko = {
@@ -43,6 +47,7 @@
       nix-homebrew,
       homebrew-brew,
       dynatrace-oss-tap,
+      devvmhq-tap,
       home-manager,
       home-manager-nas,
       nixpkgs,
@@ -115,6 +120,7 @@
               enable = true;
               taps = {
                 "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
+                "devvmhq/homebrew-tap" = devvmhq-tap;
               };
               extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
               mutableTaps = false;

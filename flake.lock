@@ -113,6 +113,22 @@
         "url": "https://install.determinate.systems/determinate-nixd/tag/v3.24.2/x86_64-linux"
       }
     },
+    "devvmhq-tap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794075550,
+        "narHash": "sha256-3W5bkqWX4pftq4tS+atkG3U2yn7KtWJAQ4G+4pdTG9Q=",
+        "owner": "devvmhq",
+        "repo": "homebrew-tap",
+        "rev": "08f0661c4416f134126cc0d19095a9944e1e3c75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "devvmhq",
+        "repo": "homebrew-tap",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -250,16 +266,16 @@
     "homebrew-brew": {
       "flake": false,
       "locked": {
-        "lastModified": 1778146321,
-        "narHash": "sha256-HeBwuJmuBioZHyZqDOcf7W/xsMFupSD583v6I5Cl7a8=",
+        "lastModified": 1793584601,
+        "narHash": "sha256-gC7AZVy0ny5SEDFl87QSGan8AdqwhIwnKYzShPYCLKI=",
         "owner": "Homebrew",
         "repo": "brew",
-        "rev": "af835384ac574f76025adb38b292b04cecee1f1f",
+        "rev": "bf464f57275cae0be106b43d190c98564ac59b0e",
         "type": "github"
       },
       "original": {
         "owner": "Homebrew",
-        "ref": "5.1.10",
+        "ref": "7.0.12",
         "repo": "brew",
         "type": "github"
       }
@@ -432,6 +448,7 @@
         "agenix": "agenix",
         "darwin": "darwin",
         "determinate": "determinate",
+        "devvmhq-tap": "devvmhq-tap",
         "disko": "disko",
         "dynatrace-oss-tap": "dynatrace-oss-tap",
         "home-manager": "home-manager",
