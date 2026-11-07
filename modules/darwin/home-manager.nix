@@ -38,7 +38,7 @@ in
     enable = true;
     # Keep nix-darwin aware of taps managed by nix-homebrew.
     taps = builtins.attrNames config.nix-homebrew.taps;
-    brews = ["mole"];
+    brews = ["mole" "go" "devvmhq/tap/devvm"];
     casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" ];
     onActivation = {
       autoUpdate = false;
@@ -79,7 +79,7 @@ in
         packages = pkgs.callPackage ./packages.nix {};
         stateVersion = "23.11";
         sessionVariables = {
-          DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
+          # DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
           SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
         };
       };

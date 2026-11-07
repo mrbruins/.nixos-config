@@ -7,8 +7,6 @@ shared-packages ++ [
   docker-client  # Docker CLI for use with Lima socket
   lima
   git-credential-manager
-
-  opencode
   
   # colima
   # cfspeedtest # build broken
