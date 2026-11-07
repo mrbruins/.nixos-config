@@ -27,6 +27,10 @@ in {
         ForwardAgent no
       '' else ""}
 
+      Host truenas.m11s.nl
+        IdentityFile ${truenasIdentityFile}
+        IdentitiesOnly yes
+
       Host ssh.dev.azure.com
         User git
         IdentityFile ~/.ssh/1Password/SHA256_GypS4+jrUjxP+SppxLX3M8tr+pwYlziZgUyWyR0nGnU.pub

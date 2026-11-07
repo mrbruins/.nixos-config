@@ -72,6 +72,8 @@ in
     useGlobalPkgs = true;
     backupFileExtension = "backup";
     users.${user} = { pkgs, config, lib, ... }:{
+      imports = [ ../home-manager/ssh.nix ];
+
       home = {
         enableNixpkgsReleaseCheck = false;
         packages = pkgs.callPackage ./packages.nix {};
