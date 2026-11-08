@@ -1,14 +1,13 @@
 # nixos-config
 
-A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurations for `michielbruins`. Tracks `nixos-unstable`.
+A Nix flake managing **macOS** (nix-darwin) system configuration for `michielbruins`. Tracks `nixos-unstable`. NixOS hosts (the agent-host VM on the NAS, later a bare-metal NAS) will be added from scratch; the earlier, never-deployed NAS configuration was removed.
 
 ## Features
 
-- Unified config shared between macOS and NixOS via `modules/shared/`
+- Cross-platform config in `modules/shared/`, ready for NixOS hosts
 - [Home Manager](https://github.com/nix-community/home-manager) for user-level dotfiles (zsh, git, tmux, vim, etc.)
 - [nix-darwin](https://github.com/LnL7/nix-darwin) for macOS system management
 - [nix-homebrew](https://github.com/zhaofengli-wip/nix-homebrew) for declarative Homebrew cask management
-- [disko](https://github.com/nix-community/disko) for declarative NixOS disk partitioning
 - [agenix](https://github.com/ryantm/agenix) for secrets management (age-encrypted, YubiKey-backed)
 
 ## Repository Structure
@@ -16,14 +15,11 @@ A Nix flake managing both **macOS** (nix-darwin) and **NixOS** system configurat
 ```
 ├── flake.nix               # Entry point; inputs and system outputs
 ├── hosts/
-│   ├── darwin/             # Explicit macOS host entry points
-│   └── nixos/              # Explicit NixOS host entry points
+│   └── darwin/             # Explicit macOS host entry points
 ├── modules/
 │   ├── shared/             # Cross-platform system features
 │   ├── darwin/             # macOS-only config (casks, dock, secrets)
-│   ├── nixos/              # NixOS features, including NAS services
-│   ├── home-manager/       # Reusable user-level features
-│   └── users/              # User-specific system and Home Manager profiles
+│   └── home-manager/       # Reusable user-level features
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
 └── apps/                   # Build/deploy shell scripts per architecture
     ├── aarch64-darwin/
@@ -41,20 +37,12 @@ import tree.
 ```mermaid
 flowchart TD
   Flake[flake.nix] --> Mac[MacBook-Pro-Michiel]
-  Flake --> Nas[nas]
   Mac --> Darwin[Darwin modules]
   Mac --> Shared[Shared system features]
   Mac --> DarwinHM[Darwin Home Manager profile]
-  Nas --> NixOS[NixOS common and networking]
-  Nas --> Storage[ZFS operations]
-  Nas --> Services[NAS services]
-  Nas --> Shared
-  Nas --> User[User profile]
-  User --> SharedHM[Shared Home Manager features]
 ```
 
-The named outputs are `darwinConfigurations.MacBook-Pro-Michiel` and
-`nixosConfigurations.nas`. The legacy `darwinConfigurations.aarch64-darwin`
+The named output is `darwinConfigurations.MacBook-Pro-Michiel`. The legacy `darwinConfigurations.aarch64-darwin`
 alias remains available for compatibility.
 
 ## Bootstrap — fresh Mac
@@ -107,22 +95,6 @@ nix run .#build
 nix run .#rollback
 ```
 
-### NixOS
-
-```bash
-# Build and switch (SSH agent is forwarded to root for secrets)
-nix run .#build-switch
-```
-
-The `nas` configuration targets `x86_64-linux` and resolves to
-`nas.m11s.nl`. It enables ZFS support, scrub and trim timers, SSH key-only
-access, Samba, NFS, service discovery, and SMART monitoring. It expects the
-root filesystem at the existing `zroot/root` ZFS dataset. Pool creation,
-partitioning, data datasets, shares, and generated hardware configuration are
-intentionally not declared: add those after confirming the replacement
-server's device IDs and desired storage topology. The existing ext4 disko
-template is not imported by `nas`.
-
 ### Key management
 
 ```bash
@@ -141,14 +113,13 @@ nix develop
 
 ## Shell (ZSH)
 
-ZSH is the default interactive shell on both macOS and NixOS. It is configured entirely through [Home Manager](https://github.com/nix-community/home-manager)'s `programs.zsh` option — no manual `.zshrc` required.
+ZSH is the default interactive shell. It is configured entirely through [Home Manager](https://github.com/nix-community/home-manager)'s `programs.zsh` option — no manual `.zshrc` required.
 
 | Layer | File | Purpose |
 |---|---|---|
 | Core (shared) | `modules/shared/home-manager.nix` | ZSH enable, aliases, init script, integrations |
 | macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
 | Shared system | `modules/shared/shell.nix` | System-level `programs.zsh.enable` |
-| NAS user | `modules/users/michielbruins/home-manager.nix` | Server-safe Home Manager composition |
 
 ### Initialization
 
@@ -190,13 +161,6 @@ Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of
 - Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)`
 - Session variable: `DOCKER_HOST=unix://$HOME/.lima/docker/sock/docker.sock`
 
-### NixOS-specific additions
-
-Defined by the shared shell and NAS user modules:
-
-- `programs.zsh.enable = true` enables ZSH system-wide (adds it to `/etc/shells`)
-- `users.users.${user}.shell = pkgs.zsh` sets it as the login shell
-
 ## Adding Packages
 
 | What | Where |
@@ -204,7 +168,6 @@ Defined by the shared shell and NAS user modules:
 | Shared CLI tool | `modules/shared/packages.nix` |
 | macOS-only CLI tool | `modules/darwin/packages.nix` |
 | macOS GUI app (Homebrew cask) | `modules/darwin/casks.nix` |
-| NixOS-only tool | `modules/nixos/packages.nix` |
 | Custom derivation / fork | New file in `overlays/` |
 
 ## Secrets
@@ -212,7 +175,7 @@ Defined by the shared shell and NAS user modules:
 Secrets are age-encrypted and stored in a private [`nix-secrets`](https://github.com/mrbruins/nix-secrets) repo. To reference a secret:
 
 ```nix
-# modules/darwin/secrets.nix or modules/nixos/secrets.nix
+# modules/darwin/secrets.nix
 age.secrets."my-secret" = {
   symlink = true;
   path = "/Users/${user}/.ssh/my-secret";
