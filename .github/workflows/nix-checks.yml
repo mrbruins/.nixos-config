@@ -1,0 +1,82 @@
+# Evaluate the flake and build every host's system closure on a runner that
+# matches the host's OS and architecture. CI builds only; it never activates a
+# machine (ADR 0002: hosts pull approved main and activate locally).
+#
+# UNVERIFIED (validation gate V09): availability, quota and cost of the
+# GitHub-hosted ARM macOS and Linux runners for this private repository have
+# not been confirmed. Do not replace a missing runner with evaluation only or
+# with a self-hosted runner on a real host without a reviewed decision.
+#
+# Required repository secret (not created by this change):
+#   NIX_SECRETS_DEPLOY_KEY  Private half of a read-only deploy key on
+#                           mrbruins/nix-secrets. Needed because the flake's
+#                           `secrets` input is fetched over SSH.
+# See README.md, section "CI".
+name: Nix checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nix-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate:
+    name: Evaluate flake (all systems)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
+
+      - name: Configure SSH access to the private secrets input
+        env:
+          NIX_SECRETS_DEPLOY_KEY: ${{ secrets.NIX_SECRETS_DEPLOY_KEY }}
+        run: .github/scripts/setup-secrets-ssh.sh
+
+      - name: nix flake check --all-systems --no-build
+        run: nix flake check --all-systems --no-build
+
+  build:
+    name: Build ${{ matrix.host }} (${{ matrix.system }})
+    needs: evaluate
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: MacBook-Pro-Michiel
+            system: aarch64-darwin
+            runner: macos-latest # ARM64 (Apple silicon)
+          - host: Mac-Studio
+            system: aarch64-darwin
+            runner: macos-latest # ARM64 (Apple silicon)
+          - host: agent-host
+            system: x86_64-linux
+            runner: ubuntu-latest # x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
+
+      - name: Configure SSH access to the private secrets input
+        env:
+          NIX_SECRETS_DEPLOY_KEY: ${{ secrets.NIX_SECRETS_DEPLOY_KEY }}
+        run: .github/scripts/setup-secrets-ssh.sh
+
+      - name: Build system closure
+        run: nix build --print-build-logs --no-link ".#checks.${{ matrix.system }}.${{ matrix.host }}"

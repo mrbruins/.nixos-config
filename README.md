@@ -1,6 +1,12 @@
 # nixos-config
 
-A Nix flake managing **macOS** (nix-darwin) system configuration for `michielbruins`. Tracks `nixos-unstable`. NixOS hosts (the agent-host VM on the NAS, later a bare-metal NAS) will be added from scratch; the earlier, never-deployed NAS configuration was removed.
+A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration for `michielbruins`. The Macs track `nixos-unstable`; the NixOS agent host tracks the stable `nixos-26.05` channel (see [Nixpkgs channels](#nixpkgs-channels)). The earlier, never-deployed NAS configuration was removed; the NAS runs TrueNAS SCALE.
+
+| Host | Output | Platform | Status |
+|---|---|---|---|
+| MacBook Pro (M3 Max) | `darwinConfigurations.MacBook-Pro-Michiel` | aarch64-darwin | In use |
+| Mac Studio (M1 Max, headless, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed; host name is a placeholder |
+| Agent host (VM on TrueNAS SCALE) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
 
 ## Features
 
@@ -14,11 +20,20 @@ A Nix flake managing **macOS** (nix-darwin) system configuration for `michielbru
 
 ```
 ├── flake.nix               # Entry point; inputs and system outputs
+├── .github/
+│   ├── workflows/          # CI: flake evaluation and per-host closure builds
+│   └── scripts/            # CI helper scripts
 ├── hosts/
-│   └── darwin/             # Explicit macOS host entry points
+│   ├── darwin/
+│   │   ├── MacBook-Pro-Michiel.nix  # MacBook entry point
+│   │   ├── default.nix              # MacBook profile (GUI, dock, casks, secrets)
+│   │   └── Mac-Studio.nix           # Headless Mac Studio entry point
+│   └── nixos/
+│       ├── agent-host.nix           # NixOS agent-host VM entry point
+│       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
 ├── modules/
 │   ├── shared/             # Cross-platform system features
-│   ├── darwin/             # macOS-only config (casks, dock, secrets)
+│   ├── darwin/             # macOS-only config (base, casks, dock, secrets)
 │   └── home-manager/       # Reusable user-level features
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
 └── apps/                   # Build/deploy shell scripts per architecture
@@ -37,13 +52,50 @@ import tree.
 ```mermaid
 flowchart TD
   Flake[flake.nix] --> Mac[MacBook-Pro-Michiel]
-  Mac --> Darwin[Darwin modules]
-  Mac --> Shared[Shared system features]
+  Flake --> Studio[Mac-Studio]
+  Flake --> Agent[agent-host]
+  Mac --> Base[modules/darwin/base.nix]
+  Studio --> Base
+  Base --> Shared[Shared system features]
   Mac --> DarwinHM[Darwin Home Manager profile]
+  Studio --> ShellHM[home-manager/shell.nix]
+  Agent --> Hardware[agent-host/hardware.nix]
 ```
 
-The named output is `darwinConfigurations.MacBook-Pro-Michiel`. The legacy `darwinConfigurations.aarch64-darwin`
-alias remains available for compatibility.
+`modules/darwin/base.nix` holds the settings every Mac shares (Determinate-managed Nix, primary user, state
+version, shared modules). Laptop, GUI and secrets settings stay in the MacBook profile. The Mac Studio leaves
+out Homebrew, casks, Mac App Store apps, dock and input settings, and does not touch SIP, Gatekeeper,
+FileVault, Remote Login or power settings; those belong to the reviewed phase 9 bootstrap. The agent host is
+self-contained and does not import the shared modules, which carry workstation settings such as
+`allowBroken`.
+
+### Flake outputs
+
+| Output | Contents |
+|---|---|
+| `darwinConfigurations.MacBook-Pro-Michiel` | MacBook system (also exposed as the legacy alias `darwinConfigurations.aarch64-darwin`) |
+| `darwinConfigurations.Mac-Studio` | Mac Studio system |
+| `nixosConfigurations.agent-host` | Agent-host VM system |
+| `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
+| `checks.x86_64-linux.agent-host` | Agent-host system closure |
+| `apps`, `devShells`, `formatter` | Imperative scripts, dev shell, `nixfmt` |
+
+### Nixpkgs channels
+
+The Macs follow `nixpkgs` (`nixos-unstable`), as before, because nix-darwin `master` and Home Manager
+track unstable. The agent host follows a separate `nixpkgs-stable` input (`nixos-26.05`). It is a
+headless server that hosts other workloads, so it should get security backports without the churn of
+unstable, and its updates can be reviewed apart from the Macs. Moving it to the next stable release
+(`nixos-26.11`) is a deliberate input change; `system.stateVersion` stays `26.05`.
+
+### Agent host placeholders
+
+`hosts/nixos/agent-host/hardware.nix` assumes a UEFI (OVMF) VM with virtio devices, a root ext4 file system
+labelled `nixos` and an EFI system partition labelled `boot`. Replace it with real values from
+`nixos-generate-config` after the TrueNAS VM exists. Nested KVM needs the VM's CPU mode set to host
+passthrough in TrueNAS. The user `michielbruins` logs in with SSH keys only and has no password, so set
+one on the console before using `sudo`. Join the tailnet manually with `tailscale up` until auth keys are
+handled as secrets.
 
 ## Bootstrap — fresh Mac
 
@@ -67,6 +119,31 @@ What the script does, step by step:
 | 6 | Run **`build-switch`** — builds and activates the full nix-darwin configuration |
 
 After the script finishes, open a new terminal to pick up all shell changes.
+
+## CI
+
+`.github/workflows/nix-checks.yml` runs on pull requests to `main`, pushes to `main` and manual dispatch,
+with read-only `contents` permission. It never activates a machine.
+
+1. **Evaluate** (`ubuntu-latest`): `nix flake check --all-systems --no-build`.
+2. **Build** each host's `checks.<system>.<host>` closure on a matching runner: `macos-latest` (ARM64) for
+   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host`.
+
+Actions are pinned to full commit SHAs. Runner availability, quota and cost for this private repository
+are **not yet verified** (validation gate V09).
+
+### Setup the human must do
+
+The `secrets` input is a private repository fetched over SSH, so CI needs a read-only key:
+
+1. Generate a dedicated key pair: `ssh-keygen -t ed25519 -N '' -C 'nixos-config CI' -f nix-secrets-ci`.
+2. Add `nix-secrets-ci.pub` to `mrbruins/nix-secrets` under *Settings → Deploy keys*, **without** write access.
+3. Add the private key `nix-secrets-ci` to this repository as the Actions secret `NIX_SECRETS_DEPLOY_KEY`,
+   then delete both local files.
+4. Confirm that ARM macOS and Linux hosted runners are available for this private repository, and check
+   the minute quota and cost (V09).
+
+Pull requests from forks and Dependabot do not receive Actions secrets, so their runs fail at the SSH step.
 
 ## Prerequisites (day-to-day)
 
@@ -94,6 +171,16 @@ nix run .#build
 # Roll back to previous generation
 nix run .#rollback
 ```
+
+### Build or evaluate a host without activating
+
+```bash
+nix build .#checks.aarch64-darwin.Mac-Studio
+nix eval --raw .#nixosConfigurations.agent-host.config.system.build.toplevel.drvPath
+nix flake check --all-systems --no-build
+```
+
+Building `x86_64-linux` on a Mac needs a remote Linux builder.
 
 ### Key management
 

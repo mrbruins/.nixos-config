@@ -2,6 +2,8 @@
   description = "Starter Configuration with secrets for MacOS and NixOS";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # Stable channel for NixOS servers (agent-host); see README.
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
     agenix.url = "github:ryantm/agenix";
     home-manager.url = "github:nix-community/home-manager";
     darwin = {
@@ -41,6 +43,7 @@
       devvmhq-tap,
       home-manager,
       nixpkgs,
+      nixpkgs-stable,
       agenix,
       secrets,
     }@inputs:
@@ -95,28 +98,37 @@
         "install" = mkApp "install" system;
         "rollback" = mkApp "rollback" system;
       };
-      darwinConfiguration = darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
-        specialArgs = inputs;
-        modules = [
-          determinate.darwinModules.default
-          home-manager.darwinModules.home-manager
-          nix-homebrew.darwinModules.nix-homebrew
-          {
-            nix-homebrew = {
-              inherit user;
-              enable = true;
-              taps = {
-                "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
-                "devvmhq/homebrew-tap" = devvmhq-tap;
-              };
-              extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
-              mutableTaps = false;
-              autoMigrate = true;
+      mkDarwinSystem =
+        modules:
+        darwin.lib.darwinSystem {
+          system = "aarch64-darwin";
+          specialArgs = inputs;
+          modules = [
+            determinate.darwinModules.default
+            home-manager.darwinModules.home-manager
+          ]
+          ++ modules;
+        };
+      darwinConfiguration = mkDarwinSystem [
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            inherit user;
+            enable = true;
+            taps = {
+              "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
+              "devvmhq/homebrew-tap" = devvmhq-tap;
             };
-          }
-          ./hosts/darwin/MacBook-Pro-Michiel.nix
-        ];
+            extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
+            mutableTaps = false;
+            autoMigrate = true;
+          };
+        }
+        ./hosts/darwin/MacBook-Pro-Michiel.nix
+      ];
+      macStudioConfiguration = mkDarwinSystem [ ./hosts/darwin/Mac-Studio.nix ];
+      agentHostConfiguration = nixpkgs-stable.lib.nixosSystem {
+        modules = [ ./hosts/nixos/agent-host.nix ];
       };
     in
     {
@@ -127,7 +139,23 @@
 
       darwinConfigurations = {
         "MacBook-Pro-Michiel" = darwinConfiguration;
+        "Mac-Studio" = macStudioConfiguration;
         "aarch64-darwin" = darwinConfiguration;
+      };
+
+      nixosConfigurations = {
+        "agent-host" = agentHostConfiguration;
+      };
+
+      # One system closure per host, built by CI on a matching runner.
+      checks = {
+        aarch64-darwin = {
+          "MacBook-Pro-Michiel" = darwinConfiguration.config.system.build.toplevel;
+          "Mac-Studio" = macStudioConfiguration.config.system.build.toplevel;
+        };
+        x86_64-linux = {
+          "agent-host" = agentHostConfiguration.config.system.build.toplevel;
+        };
       };
     };
 }
