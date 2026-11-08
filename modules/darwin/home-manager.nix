@@ -81,6 +81,10 @@ in
         sessionVariables = {
           # DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
           SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+
+          # Claude Code can't build the Google Trust Services chain from the
+          # macOS keychain alone (UNABLE_TO_GET_ISSUER_CERT_LOCALLY).
+          NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
         };
       };
       home.activation.gitWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
