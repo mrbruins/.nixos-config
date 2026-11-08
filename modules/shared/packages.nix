@@ -51,7 +51,7 @@ with pkgs; [
   nodejs_24
 
   ## Python
-  python311
+  python314
   virtualenv
 
   
