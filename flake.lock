@@ -129,42 +129,6 @@
         "type": "github"
       }
     },
-    "devvmhq-tap": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1794075550,
-        "narHash": "sha256-3W5bkqWX4pftq4tS+atkG3U2yn7KtWJAQ4G+4pdTG9Q=",
-        "owner": "devvmhq",
-        "repo": "homebrew-tap",
-        "rev": "08f0661c4416f134126cc0d19095a9944e1e3c75",
-        "type": "github"
-      },
-      "original": {
-        "owner": "devvmhq",
-        "repo": "homebrew-tap",
-        "type": "github"
-      }
-    },
-    "disko": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792526520,
-        "narHash": "sha256-3hSJlv8mUVnZPMWK2+CM7a9O+nR6Z4mCh27NfLCmTPc=",
-        "owner": "nix-community",
-        "repo": "disko",
-        "rev": "cedd626e11b635470fa6f9fdb8ad79b0075dd7f9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "disko",
-        "type": "github"
-      }
-    },
     "dynatrace-oss-tap": {
       "flake": false,
       "locked": {
@@ -254,27 +218,6 @@
       },
       "original": {
         "owner": "nix-community",
-        "repo": "home-manager",
-        "type": "github"
-      }
-    },
-    "home-manager-nas": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs-nas"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792818383,
-        "narHash": "sha256-199i7ubVSXTMl+0AAlL7cVCXSjcI+jWByMcimYjeMX0=",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "24f2190587513b9c2f73db112a17844ae912d965",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "ref": "release-26.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -370,22 +313,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-nas": {
-      "locked": {
-        "lastModified": 1793865203,
-        "narHash": "sha256-/cpdPHaySDIyCgZI6EWngiM6jK3YLUNzv1b7lTzy6Bk=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "c56a87d8e41ce69bd2af57eb35dcc117a9dfca33",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-26.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-regression": {
       "locked": {
         "lastModified": 1643052045,
@@ -465,14 +392,11 @@
         "darwin": "darwin",
         "determinate": "determinate",
         "devvmhq-tap": "devvmhq-tap",
-        "disko": "disko",
         "dynatrace-oss-tap": "dynatrace-oss-tap",
         "home-manager": "home-manager",
-        "home-manager-nas": "home-manager-nas",
         "homebrew-brew": "homebrew-brew",
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs_5",
-        "nixpkgs-nas": "nixpkgs-nas",
         "secrets": "secrets"
       }
     },

@@ -2,13 +2,8 @@
   description = "Starter Configuration with secrets for MacOS and NixOS";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-nas.url = "github:nixos/nixpkgs/nixos-26.05";
     agenix.url = "github:ryantm/agenix";
     home-manager.url = "github:nix-community/home-manager";
-    home-manager-nas = {
-      url = "github:nix-community/home-manager/release-26.05";
-      inputs.nixpkgs.follows = "nixpkgs-nas";
-    };
     darwin = {
       url = "github:LnL7/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,10 +25,6 @@
       url = "github:devvmhq/homebrew-tap";
       flake = false;
     };
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     secrets = {
       url = "git+ssh://git@github.com/mrbruins/nix-secrets.git";
       flake = false;
@@ -49,14 +40,11 @@
       dynatrace-oss-tap,
       devvmhq-tap,
       home-manager,
-      home-manager-nas,
       nixpkgs,
-      nixpkgs-nas,
-      disko,
       agenix,
       secrets,
     }@inputs:
-    # outputs = { self, darwin, determinate, home-manager, nixpkgs, disko, agenix, secrets } @inputs:
+    # outputs = { self, darwin, determinate, home-manager, nixpkgs, agenix, secrets } @inputs:
     let
       user = "michielbruins";
       linuxSystems = [ "x86_64-linux" ];
@@ -130,14 +118,6 @@
           ./hosts/darwin/MacBook-Pro-Michiel.nix
         ];
       };
-      nasConfiguration = nixpkgs-nas.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = inputs;
-        modules = [
-          home-manager-nas.nixosModules.home-manager
-          ./hosts/nixos/nas.nix
-        ];
-      };
     in
     {
       devShells = forAllSystems devShell;
@@ -145,16 +125,9 @@
         nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
-      checks.x86_64-linux = {
-        nas = nasConfiguration.config.system.build.toplevel;
-        nas-haos-xml = nasConfiguration.config.system.build.haosXml;
-      };
-
       darwinConfigurations = {
         "MacBook-Pro-Michiel" = darwinConfiguration;
         "aarch64-darwin" = darwinConfiguration;
       };
-
-      nixosConfigurations.nas = nasConfiguration;
     };
 }
