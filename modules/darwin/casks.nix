@@ -25,6 +25,7 @@ _:
   # "macfuse"
 
   # AI tools
+  "claude"
   #"ollama-app"
 
   # Fonts
