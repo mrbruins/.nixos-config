@@ -11,6 +11,8 @@ let
       path = ~/.config/git/config-platform
     [includeIf "gitdir:~/dev/personal/"]
       path = ~/.config/git/config-personal
+    [includeIf "gitdir:~/.t3/"]
+      path = ~/.config/git/config-personal
     [includeIf "gitdir:~/dev/Eneco/"]
       path = ~/.config/git/config-work
   '';
