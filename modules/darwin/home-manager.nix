@@ -8,9 +8,10 @@ let
       path = ~/.config/git/config-managed
     [include]
       path = ~/.config/git/config-platform
-    [includeIf "gitdir:~/dev/personal/"]
-      path = ~/.config/git/config-personal
-    [includeIf "gitdir:~/.t3/"]
+    # Personal identity (mrbruins, noreply email, 1Password SSH signing) is the
+    # default for every repo, wherever it lives. Git applies later includes over
+    # earlier ones, so the Eneco override must stay last.
+    [include]
       path = ~/.config/git/config-personal
     [includeIf "gitdir:~/dev/Eneco/"]
       path = ~/.config/git/config-work
