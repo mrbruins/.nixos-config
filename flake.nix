@@ -97,6 +97,7 @@
         "check-keys" = mkApp "check-keys" system;
         "install" = mkApp "install" system;
         "rollback" = mkApp "rollback" system;
+        "pin-known-good" = mkApp "pin-known-good" system;
       };
       mkDarwinSystem =
         modules:
