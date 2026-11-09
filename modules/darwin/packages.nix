@@ -1,14 +1,19 @@
 { pkgs }:
 
 with pkgs;
-let shared-packages = import ../shared/packages.nix { inherit pkgs; }; in
-shared-packages ++ [
+let
+  shared-packages = import ../shared/packages.nix { inherit pkgs; };
+in
+shared-packages
+++ [
   dockutil
-  docker-client  # Docker CLI for use with Lima socket
+  docker-client # Docker CLI for use with Lima socket
   lima
   git-credential-manager
   claude-code
-  
+  nil # Nix language server (VS Code Personal - Nix profile)
+  nixfmt # Nix formatter used by nil and `nix fmt`
+
   # colima
   # cfspeedtest # build broken
   # TODO: move node to shared-packages?
