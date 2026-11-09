@@ -1,24 +1,49 @@
 #!/bin/sh -e
+# Roll the nix-darwin system back to a retained generation.
+#
+# Works offline and without GitHub: switching generations only re-points the
+# system profile and runs that generation's own activation script. Nothing is
+# evaluated, built or downloaded. Homebrew and macOS changes are NOT reverted.
+#
+# Break-glass use: run this file directly, not via `nix run` (which evaluates
+# the flake):  ~/.nixos-config/apps/aarch64-darwin/rollback [generation]
+# Without an argument it lists generations and asks; "previous" rolls back one.
 
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-NC='\033[0m'
+[ "$(id -u)" -eq 0 ] || exec sudo -- "$0" "$@"
 
-FLAKE="MacBook-Pro-Michiel"
+NIX_ENV=/nix/var/nix/profiles/default/bin/nix-env
+PROFILE=/nix/var/nix/profiles/system
 
-echo "${YELLOW}Available generations:${NC}"
-/run/current-system/sw/bin/darwin-rebuild --list-generations
+echo "Retained system generations (current is marked):"
+"$NIX_ENV" --profile "$PROFILE" --list-generations
+if [ -e /nix/var/nix/profiles/known-good ]; then
+  echo "Pinned known-good: $(readlink -f /nix/var/nix/profiles/known-good)"
+fi
 
-echo "${YELLOW}Enter the generation number for rollback:${NC}"
-read GEN_NUM
+GEN="${1:-}"
+if [ -z "$GEN" ]; then
+  printf 'Generation number to activate (or "previous"): '
+  read -r GEN
+fi
 
-if [ -z "$GEN_NUM" ]; then
-  echo "${RED}No generation number entered. Aborting rollback.${NC}"
+if [ "$GEN" = previous ]; then
+  # The rollback target's own darwin-rebuild keeps working even if the
+  # current generation's tooling is broken.
+  CUR=$(readlink "$PROFILE" | sed -E 's/^system-([0-9]+)-link$/\1/')
+  GEN=$("$NIX_ENV" --profile "$PROFILE" --list-generations \
+    | awk -v cur="$CUR" '$1 < cur { g = $1 } END { print g }')
+fi
+
+case "$GEN" in
+  '' | *[!0-9]*) echo "Not a generation number: '$GEN'. Aborting." >&2; exit 1 ;;
+esac
+
+LINK="$PROFILE-$GEN-link"
+if [ ! -e "$LINK" ]; then
+  echo "Generation $GEN is not retained ($LINK missing). Aborting." >&2
   exit 1
 fi
 
-echo "${YELLOW}Rolling back to generation $GEN_NUM...${NC}"
-/run/current-system/sw/bin/darwin-rebuild switch --flake .#$FLAKE --switch-generation $GEN_NUM
-
-echo "${GREEN}Rollback to generation $GEN_NUM complete!${NC}"
+echo "Activating generation $GEN: $(readlink -f "$LINK")"
+"$LINK/sw/bin/darwin-rebuild" --switch-generation "$GEN"
+echo "Now running: $(readlink -f /run/current-system)"

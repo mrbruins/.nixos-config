@@ -1,0 +1,21 @@
+#!/bin/sh -e
+# Pin the running nix-darwin system as known-good.
+#
+# Keeps the last two pinned systems in a separate profile,
+# /nix/var/nix/profiles/known-good, which is a garbage-collection root. They
+# survive `nix-collect-garbage -d` (which only prunes the system profile's
+# generations). Run it after a deployment has passed its health checks; the
+# Phase 4 deployer will call it from a post-deployment script.
+#
+# Use directly or via `nix run .#pin-known-good`.
+
+[ "$(id -u)" -eq 0 ] || exec sudo -- "$0" "$@"
+
+NIX_ENV=/nix/var/nix/profiles/default/bin/nix-env
+KNOWN_GOOD=/nix/var/nix/profiles/known-good
+SYSTEM=$(readlink -f /run/current-system)
+
+"$NIX_ENV" --profile "$KNOWN_GOOD" --set "$SYSTEM"
+"$NIX_ENV" --profile "$KNOWN_GOOD" --delete-generations +2
+echo "Pinned known-good systems:"
+"$NIX_ENV" --profile "$KNOWN_GOOD" --list-generations

@@ -178,9 +178,16 @@ nix run .#build-switch
 # Build only, no activation
 nix run .#build
 
-# Roll back to previous generation
+# Roll back to a retained generation (lists them, asks which; or pass a number / "previous")
 nix run .#rollback
+
+# Pin the running system as known-good (kept as a GC root, last two)
+nix run .#pin-known-good
 ```
+
+**Break glass (no GitHub, no network):** run the scripts directly, because `nix run` evaluates the
+flake: `~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
+generation without building anything. Homebrew and macOS changes are not reverted.
 
 ### Build or evaluate a host without activating
 
