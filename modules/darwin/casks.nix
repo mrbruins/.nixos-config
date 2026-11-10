@@ -20,6 +20,7 @@ _:
   # "coder"
   # "charles"
   "t3-code@nightly"
+  "azure-cli"  # extensions are installed per user: az extension add --name <name>
 
   # File System
   # "macfuse"
