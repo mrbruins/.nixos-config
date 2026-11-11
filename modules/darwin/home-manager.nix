@@ -41,7 +41,7 @@ in
     enable = true;
     # Keep nix-darwin aware of taps managed by nix-homebrew.
     taps = builtins.attrNames config.nix-homebrew.taps;
-    brews = ["mole" "go" "devvmhq/tap/devvm"];
+    brews = ["mole" "go" "devvmhq/tap/devvm" "likec4"];
     casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" ];
     onActivation = {
       autoUpdate = false;
