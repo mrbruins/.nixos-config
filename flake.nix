@@ -35,6 +35,12 @@
       url = "git+ssh://git@github.com/mrbruins/nix-secrets.git";
       flake = false;
     };
+    # Captures and applies macOS settings for the *-settings apps only; never
+    # imported as a module, so build-switch doesn't apply settings. See README.
+    nix-plist-manager = {
+      url = "github:sushydev/nix-plist-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     {
@@ -51,6 +57,7 @@
       nixpkgs-stable,
       agenix,
       secrets,
+      nix-plist-manager,
     }@inputs:
     # outputs = { self, darwin, determinate, home-manager, nixpkgs, agenix, secrets } @inputs:
     let
@@ -89,6 +96,33 @@
           '')
         }/bin/${scriptName}";
       };
+      # The settings apps also get the tools and paths lib/settings-common.sh expects.
+      mkSettingsApp =
+        scriptName: system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          npmApps = nix-plist-manager.apps.${system};
+        in
+        {
+          type = "app";
+          program = "${(pkgs.writeShellScriptBin scriptName ''
+            export PATH=${
+              nixpkgs.lib.makeBinPath [
+                pkgs.git
+                pkgs.nixfmt
+              ]
+            }:$PATH
+            export SETTINGS_SRC=${self}/settings
+            export SETTINGS_LIB=${self}/lib/macos-settings.nix
+            export PLIST_KEYS=${self}/lib/plist-keys.js
+            export NIXPKGS_LIB=${nixpkgs}/lib
+            export NPM_ROOT=${nix-plist-manager}
+            export NIX_PLIST_MANAGER_ROOT=${nix-plist-manager}
+            export NPM_CURRENT=${npmApps.current.program}
+            export NPM_WATCH=${npmApps.watch.program}
+            exec ${self}/apps/${system}/${scriptName} "$@"
+          '')}/bin/${scriptName}";
+        };
       mkLinuxApps = system: {
         "apply" = mkApp "apply" system;
         "build-switch" = mkApp "build-switch" system;
@@ -103,6 +137,10 @@
         "install" = mkApp "install" system;
         "rollback" = mkApp "rollback" system;
         "pin-known-good" = mkApp "pin-known-good" system;
+        "capture-settings" = mkSettingsApp "capture-settings" system;
+        "settings-diff" = mkSettingsApp "settings-diff" system;
+        "apply-settings" = mkSettingsApp "apply-settings" system;
+        "settings-watch" = mkSettingsApp "settings-watch" system;
       };
       mkDarwinSystem =
         modules:

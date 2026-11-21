@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Print every preference key that changes while you flip settings, to find
+# what to add to settings/apps/manifest (or settings/ignore.txt).
+#
+#   nix run .#settings-watch -- [<domain filter>...]
+#
+# Runs nix-plist-manager's watcher, which watches the preference files and
+# prints each changed domain, key and value until Ctrl-C. Filters narrow it to
+# matching domains, e.g. `com.surteesstudios.Bartender`. The first run compiles
+# the watcher with the Mac's Swift (Xcode Command Line Tools).
+set -euo pipefail
+. "$(dirname "$0")/../../lib/settings-common.sh"
+
+case "${1:-}" in
+  -h|--help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+esac
+exec "$NPM_WATCH" "$@"
