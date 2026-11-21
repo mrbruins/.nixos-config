@@ -35,6 +35,22 @@
         "type": "github"
       }
     },
+    "cctm-tap": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778979586,
+        "narHash": "sha256-7GnXbqw7IIBrgL1H+8dt389gAAzaFLF538gEfvWTKvI=",
+        "owner": "tylergraydev",
+        "repo": "homebrew-cctm",
+        "rev": "4eb5f933f921e0bea4461d5a68ba0ef7a7290728",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tylergraydev",
+        "repo": "homebrew-cctm",
+        "type": "github"
+      }
+    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -405,6 +421,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "cctm-tap": "cctm-tap",
         "darwin": "darwin",
         "determinate": "determinate",
         "devvmhq-tap": "devvmhq-tap",

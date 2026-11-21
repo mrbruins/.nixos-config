@@ -42,7 +42,7 @@ in
     # Keep nix-darwin aware of taps managed by nix-homebrew.
     taps = builtins.attrNames config.nix-homebrew.taps;
     brews = ["mole" "go" "devvmhq/tap/devvm" "likec4"];
-    casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" ];
+    casks = pkgs.callPackage ./casks.nix {} ++ [ "dynatrace-oss/tap/dtctl" "tylergraydev/cctm/claude-code-tool-manager" ];
     onActivation = {
       autoUpdate = false;
       upgrade = false;
