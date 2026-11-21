@@ -23,7 +23,11 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
 say "System Settings ($host):"
-"$NPM_CURRENT" "$work/raw.nix" 2>/dev/null
+# Keep the reader's summary out of the way, but show it if reading fails.
+"$NPM_CURRENT" "$work/raw.nix" 2> "$work/read.err" || {
+  cat "$work/read.err" >&2
+  die "Could not read this Mac's System Settings."
+}
 changes=$(settingsEval "diff { settingsDir = $(nixPath "$root/settings"); host = \"$host\"; raw = $(nixPath "$work/raw.nix"); ignoreFile = $(nixPath "$root/settings/ignore.txt"); }")
 if [ -n "$changes" ]; then printf '%s\n' "$changes"; else ok "  no differences"; fi
 
