@@ -27,6 +27,10 @@
       url = "github:devvmhq/homebrew-tap";
       flake = false;
     };
+    cctm-tap = {
+      url = "github:tylergraydev/homebrew-cctm";
+      flake = false;
+    };
     secrets = {
       url = "git+ssh://git@github.com/mrbruins/nix-secrets.git";
       flake = false;
@@ -41,6 +45,7 @@
       homebrew-brew,
       dynatrace-oss-tap,
       devvmhq-tap,
+      cctm-tap,
       home-manager,
       nixpkgs,
       nixpkgs-stable,
@@ -119,6 +124,7 @@
             taps = {
               "dynatrace-oss/homebrew-tap" = dynatrace-oss-tap;
               "devvmhq/homebrew-tap" = devvmhq-tap;
+              "tylergraydev/homebrew-cctm" = cctm-tap;
             };
             extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
             mutableTaps = false;
