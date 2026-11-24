@@ -8,7 +8,7 @@
   ];
 
   # Load configuration that is shared across systems
-  environment.systemPackages = import ../../modules/shared/packages.nix { inherit pkgs; };
+  environment.systemPackages = import ../../profiles/cli/packages.nix { inherit pkgs; };
 
   system = {
     defaults = {

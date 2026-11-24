@@ -6,11 +6,11 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 |---|---|---|---|
 | MacBook Pro (M3 Max) | `darwinConfigurations.MacBook-Pro-Michiel` | aarch64-darwin | In use |
 | Mac Studio (M1 Max, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed |
-| Agent host (VM on TrueNAS SCALE) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
+| Agent host (VM) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
 
 ## Features
 
-- Cross-platform config in `modules/shared/`, ready for NixOS hosts
+- One command-line profile on every machine, on macOS and Linux
 - [Home Manager](https://github.com/nix-community/home-manager) for user-level dotfiles (zsh, git, tmux, vim, etc.)
 - [nix-darwin](https://github.com/LnL7/nix-darwin) for macOS system management
 - [nix-homebrew](https://github.com/zhaofengli-wip/nix-homebrew) for declarative Homebrew cask management
@@ -30,10 +30,10 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   └── nixos/
 │       ├── agent-host.nix           # NixOS agent-host VM entry point
 │       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
+├── profiles/               # cli, workstation and server: what machines share
 ├── modules/
 │   ├── shared/             # Cross-platform system features
-│   ├── darwin/             # macOS-only config (base, casks, dock)
-│   └── home-manager/       # Reusable user-level features
+│   └── darwin/             # macOS-only config (base, casks, dock)
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
 ├── settings/               # Captured macOS settings, applied only by apply-settings
 │   ├── <host>/system.nix   # System Settings per Mac, written by capture-settings
@@ -47,31 +47,38 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 
 ## Configuration Architecture
 
-The flake uses a hybrid host-oriented and feature-oriented layout. Hosts remain
-explicit composition roots, while reusable concerns are gradually extracted as
-small modules. Imports are explicit; there is no module registry or automatic
-import tree.
+Hosts are explicit composition roots. What machines share lives in three profiles:
+
+| Profile | Kind | Contents |
+|---|---|---|
+| `profiles/cli` | Home Manager | Shell, editor, command-line tools, direnv, and the seven-day cooldown for npm, Bun and uv. Every machine has it. |
+| `profiles/workstation` | Home Manager | Adds runtimes, fonts, and SSH and Git configuration. MacBook only. |
+| `profiles/server` | NixOS | Key-only SSH, Tailscale, one human account, and the CLI profile. |
+
+Imports are explicit; there is no module registry or automatic import tree.
 
 ```mermaid
 flowchart TD
   Flake[flake.nix] --> Mac[MacBook-Pro-Michiel]
   Flake --> Studio[Mac-Studio]
   Flake --> Agent[agent-host]
+  Flake --> Linux[any Linux machine]
   Mac --> Base[modules/darwin/base.nix]
   Studio --> Base
-  Base --> Shared[Shared system features]
-  Mac --> DarwinHM[Darwin Home Manager profile]
-  Studio --> ShellHM[home-manager/shell.nix]
-  Agent --> Hardware[agent-host/hardware.nix]
+  Base --> Shared[modules/shared]
+  Mac --> Workstation[profiles/workstation]
+  Agent --> Server[profiles/server]
+  Workstation --> CLI[profiles/cli]
+  Studio --> CLI
+  Server --> CLI
+  Linux --> CLI
 ```
 
 `modules/darwin/base.nix` holds the settings every Mac shares (Determinate-managed Nix, primary user, state
 version, shared modules). Laptop and GUI settings stay in the MacBook profile. The Mac Studio leaves
 out Homebrew, casks, Mac App Store apps, dock and input settings. It adds key-only Remote Login, Tailscale,
 1Password and a loopback-only Ollama, and does not touch SIP, Gatekeeper, FileVault, Screen Sharing or power
-settings. The agent host is
-self-contained and does not import the shared modules, which carry workstation settings such as
-`allowBroken`.
+settings. NixOS hosts do not import `modules/shared`.
 
 ### Flake outputs
 
@@ -81,8 +88,15 @@ self-contained and does not import the shared modules, which carry workstation s
 | `darwinConfigurations.Mac-Studio` | Mac Studio system |
 | `nixosConfigurations.agent-host` | Agent-host VM system |
 | `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
-| `checks.x86_64-linux.agent-host` | Agent-host system closure |
+| `checks.x86_64-linux.{agent-host,linux-cli}` | Agent-host system closure and the CLI profile on Linux |
+| `homeConfigurations."michielbruins@{x86_64,aarch64}-linux"` | The CLI profile on a Linux machine this repository does not manage |
 | `apps`, `devShells`, `formatter` | Imperative scripts (including the [settings apps](#macos-settings)), dev shell, `nixfmt` |
+
+### Any other Linux machine
+
+```bash
+nix run github:nix-community/home-manager/release-26.05 -- switch --flake github:mrbruins/.nixos-config#michielbruins@x86_64-linux
+```
 
 ### Nixpkgs channels
 
@@ -98,8 +112,7 @@ unstable, and its updates can be reviewed apart from the Macs. Moving it to the 
 labelled `nixos` and an EFI system partition labelled `boot`. Replace it with real values from
 `nixos-generate-config` after the TrueNAS VM exists. Nested KVM needs the VM's CPU mode set to host
 passthrough in TrueNAS. The user `michielbruins` logs in with SSH keys only and has no password, so set
-one on the console before using `sudo`. Join the tailnet manually with `tailscale up` until auth keys are
-handled as secrets.
+one on the console before using `sudo`. Join the tailnet with `sudo tailscale up --qr`.
 
 ## Bootstrap — fresh Mac
 
@@ -147,7 +160,7 @@ with read-only `contents` permission. It never activates a machine.
 
 1. **Evaluate** (`ubuntu-latest`): `nix flake check --all-systems --no-build`.
 2. **Build** each host's `checks.<system>.<host>` closure on a matching runner: `macos-latest` (ARM64) for
-   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host`.
+   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host` and `linux-cli`.
 
 Actions are pinned to full commit SHAs. This repository is public, so standard hosted runners (including
 ARM macOS) are free. If it becomes private, runs consume the plan's included minutes, macOS at a 10x
@@ -261,7 +274,7 @@ ZSH is the default interactive shell. It is configured entirely through [Home Ma
 
 | Layer | File | Purpose |
 |---|---|---|
-| Core (shared) | `modules/shared/home-manager.nix` | ZSH enable, aliases, init script, integrations |
+| Core (shared) | `profiles/cli/programs.nix` | ZSH enable, aliases, init script, integrations |
 | macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
 | Shared system | `modules/shared/shell.nix` | System-level `programs.zsh.enable` |
 
@@ -286,31 +299,28 @@ The `initContent` block (prepended to `.zshrc`) handles:
 | `la` | `eza -lbhHigUmuSa …` | Extended metadata |
 | `lx` | `eza -lbhHigUmuSa@ …` | Extended metadata + xattrs |
 | `tree` | `eza --tree` | Directory tree |
-| `cat` | `bat` | Syntax-highlighted output |
 | `man` | `batman` | Man pages via bat |
-| `diff` | `batdiff` | Diff via bat |
 | `search` | `rg -p --glob '!node_modules/*'` | Ripgrep, node_modules excluded |
 | `..` … `......` | `z ..` … `z ../../../../..` | Zoxide-backed traversal |
 
 ### Integrations
 
 - **[zoxide](https://github.com/ajeetdsouza/zoxide)** — smart `cd` replacement; enabled with `enableZshIntegration = true`, invoked with `z`
-- **[bat](https://github.com/sharkdp/bat)** + bat-extras — replaces `cat`, `man`, `diff`; includes `batdiff`, `batman`, `batwatch`, `prettybat`, `batpipe`
+- **[bat](https://github.com/sharkdp/bat)** + bat-extras — replaces `man`; includes `batdiff`, `batman`, `batwatch`, `prettybat`, `batpipe`
 
 ### macOS-specific additions
 
-Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of the shared config:
+Defined in `modules/darwin/home-manager.nix`:
 
 - Shell is set to `pkgs.zsh` in `users.users.${user}`
 - Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)`
-- Session variable: `DOCKER_HOST=unix://$HOME/.lima/docker/sock/docker.sock`
 
 ## Adding Packages
 
 | What | Where |
 |---|---|
-| Shared CLI tool | `modules/shared/packages.nix` |
-| macOS-only CLI tool | `modules/darwin/packages.nix` |
+| CLI tool for every machine | `profiles/cli/packages.nix` |
+| Runtime or desktop tool for the MacBook | `profiles/workstation/packages.nix` |
 | macOS GUI app (Homebrew cask) | `modules/darwin/casks.nix` |
 | Custom derivation / fork | New file in `overlays/` |
 
