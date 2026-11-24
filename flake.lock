@@ -151,11 +151,11 @@
     "dynatrace-oss-tap": {
       "flake": false,
       "locked": {
-        "lastModified": 1793560367,
-        "narHash": "sha256-+BKcnYLAjesgu8y2I4UnJgETlFG595dvZU9T6PCOnR8=",
+        "lastModified": 1794253304,
+        "narHash": "sha256-BjCREVE2JfcyR9YsBMlhHFqHVoQrO6egUls4xJals5g=",
         "owner": "dynatrace-oss",
         "repo": "homebrew-tap",
-        "rev": "78419664669f29d49a5f79cff705d1186f5a4cc1",
+        "rev": "72e0c5d439437468507784f17b3ed135fa0a90e0",
         "type": "github"
       },
       "original": {
