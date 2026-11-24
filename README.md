@@ -142,7 +142,7 @@ deferred. Ollama runs as a system service on `127.0.0.1:11434`, with no models.
 
 ## CI
 
-`.github/workflows/nix-checks.yml` runs on pull requests to `main`, pushes to `main` and manual dispatch,
+`.github/workflows/nix-checks.yml` runs on pull requests (stacked ones too), pushes to `main` and manual dispatch,
 with read-only `contents` permission. It never activates a machine.
 
 1. **Evaluate** (`ubuntu-latest`): `nix flake check --all-systems --no-build`.
