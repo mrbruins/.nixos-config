@@ -9,7 +9,7 @@ in
 # Deliberately minimal. Not included here, compared with the MacBook:
 # - Homebrew / nix-homebrew, casks and Mac App Store apps.
 # - Dock, trackpad, keyboard and Touch ID settings.
-# - The workstation package set from modules/shared/packages.nix.
+# - The workstation profile.
 #
 # Going headless is deferred, so Screen Sharing, power/sleep settings and login
 # items stay under human control. So do FileVault, SIP and Gatekeeper, which
@@ -19,17 +19,7 @@ in
 
   networking.hostName = "Mac-Studio";
 
-  environment.systemPackages = with pkgs; [
-    btop
-    curl
-    eza
-    git
-    htop
-    jq
-    ollama
-    ripgrep
-    tmux
-  ];
+  environment.systemPackages = [ pkgs.ollama ];
 
   programs = {
     # The app is there for the QR sign-in and the SSH agent.
@@ -86,7 +76,7 @@ in
     useGlobalPkgs = true;
     backupFileExtension = "backup";
     users.${user} = {
-      imports = [ ../../modules/home-manager/shell.nix ];
+      imports = [ ../../profiles/cli ];
 
       home.stateVersion = "26.05";
       home.enableNixpkgsReleaseCheck = false;
