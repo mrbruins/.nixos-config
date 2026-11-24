@@ -1,10 +1,9 @@
 {
-  description = "Starter Configuration with secrets for MacOS and NixOS";
+  description = "Michiel's machines: nix-darwin and NixOS";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     # Stable channel for NixOS servers (agent-host); see README.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
-    agenix.url = "github:ryantm/agenix";
     home-manager.url = "github:nix-community/home-manager";
     darwin = {
       url = "github:LnL7/nix-darwin/master";
@@ -31,10 +30,6 @@
       url = "github:tylergraydev/homebrew-cctm";
       flake = false;
     };
-    secrets = {
-      url = "git+ssh://git@github.com/mrbruins/nix-secrets.git";
-      flake = false;
-    };
     # Captures and applies macOS settings for the *-settings apps only; never
     # imported as a module, so build-switch doesn't apply settings. See README.
     nix-plist-manager = {
@@ -55,11 +50,8 @@
       home-manager,
       nixpkgs,
       nixpkgs-stable,
-      agenix,
-      secrets,
       nix-plist-manager,
     }@inputs:
-    # outputs = { self, darwin, determinate, home-manager, nixpkgs, agenix, secrets } @inputs:
     let
       user = "michielbruins";
       linuxSystems = [ "x86_64-linux" ];
@@ -77,8 +69,6 @@
               nativeBuildInputs = with pkgs; [
                 bashInteractive
                 git
-                age
-                age-plugin-yubikey
               ];
               shellHook = with pkgs; ''
                 export EDITOR=vim
@@ -123,18 +113,9 @@
             exec ${self}/apps/${system}/${scriptName} "$@"
           '')}/bin/${scriptName}";
         };
-      mkLinuxApps = system: {
-        "apply" = mkApp "apply" system;
-        "build-switch" = mkApp "build-switch" system;
-      };
       mkDarwinApps = system: {
-        "apply" = mkApp "apply" system;
         "build" = mkApp "build" system;
         "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "install" = mkApp "install" system;
         "bootstrap" = mkApp "bootstrap" system;
         "rollback" = mkApp "rollback" system;
         "pin-known-good" = mkApp "pin-known-good" system;
@@ -179,8 +160,7 @@
     in
     {
       devShells = forAllSystems devShell;
-      apps =
-        nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
+      apps = nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       darwinConfigurations = {

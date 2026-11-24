@@ -18,7 +18,6 @@ with pkgs; [
 
   # Security & Encryption
   age             # Simple, modern and secure file encryption tool
-  # age-plugin-yubikey
   gnupg           # GNU Privacy Guard
   # libfido2
   openssh

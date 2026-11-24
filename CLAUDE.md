@@ -4,14 +4,14 @@ Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-
 
 ## Ground rules
 
-- **Build, never activate.** Agents evaluate and build. Activation (`build-switch`, `darwin-rebuild switch`, `nixos-rebuild switch`, `apply`, `install`, `rollback`) is a human action. Machines will later deploy `main` by pulling it, so reviewed merges to `main` are the only path to a running system.
-- **Public repository.** Everything committed here is world-readable, including the Nix store paths it produces. Secrets live only as agenix files in the private `nix-secrets` input (`secrets` in `flake.nix`) and are referenced by path in `modules/darwin/secrets.nix`. Public keys and hostnames are fine.
+- **Build, never activate.** Agents evaluate and build. Activation (`build-switch`, `darwin-rebuild switch`, `nixos-rebuild switch`, `bootstrap`, `rollback`) is a human action. Machines will later deploy `main` by pulling it, so reviewed merges to `main` are the only path to a running system.
+- **Public repository.** Everything committed here is world-readable, including the Nix store paths it produces. Secrets live only in 1Password; nothing here needs one to build or activate. Public keys and hostnames are fine.
 - **Branch and PR.** Work on a branch and open a PR against `main`. CI (`.github/workflows/nix-checks.yml`) must pass. Never push to `main` directly.
 
 ## Structure conventions
 
 - Hosts in `hosts/<platform>/` are explicit composition roots, and `flake.nix` wires each one up. Imports are always explicit, with one exception: every file in `overlays/` is auto-loaded by `modules/shared/common.nix`.
-- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's workstation layer on top of it (agenix secrets, Home Manager with casks and dock, workstation packages). `Mac-Studio` imports only `base.nix`, because it is deliberately minimal.
+- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's workstation layer on top of it (Home Manager with casks and dock, workstation packages). `Mac-Studio` imports only `base.nix`, because it is deliberately minimal.
 - `agent-host` deliberately skips `modules/shared`, because that module enables `allowBroken` and `allowUnsupportedSystem`. Keep server hosts on reviewed, supported packages. It tracks `nixpkgs-stable`, while the Macs track `nixos-unstable`.
 - Files marked as placeholders (the `agent-host` hardware and disk labels) stay placeholders until real inventory replaces them. Write down any assumption you make rather than inventing hardware facts.
 
