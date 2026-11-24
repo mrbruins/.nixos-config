@@ -14,7 +14,8 @@ Docker; step 6 erases its boot disk.
 
 ## 2. Snapshot with everything stopped
 
-Stop all stacks in Dockhand, then the Home Assistant VM. On the NAS:
+Shut down the Home Assistant VM in TrueNAS. Do **not** stop stacks in Dockhand: a container stopped by hand
+stays stopped after the move. Stop Docker itself instead. On the NAS:
 
 ```bash
 sudo systemctl stop docker.socket docker.service
@@ -30,12 +31,12 @@ Connect the first empty 2 TB drive. Find its ID and check it twice; creating the
 
 ```bash
 ls -l /dev/disk/by-id/ | grep usb-
-sudo zpool create -O compression=zstd -O encryption=aes-256-gcm -O keyformat=passphrase -O mountpoint=none \
+sudo zpool create -R /mnt -O compression=zstd -O encryption=aes-256-gcm -O keyformat=passphrase -O mountpoint=none \
   rescue1 /dev/disk/by-id/<drive 1>
 for d in Lewis/photos Lewis/videos Lewis/Media/home-movies Max/docker/data Max/docker/stacks Max/VMs/haos-vm; do
   sudo zfs send -v "$d@before-nixos" | sudo zfs receive -u "rescue1/${d//\//-}"
 done
-sudo zfs create -o mountpoint=/mnt/rescue1-volumes rescue1/docker-volumes
+sudo zfs create -o mountpoint=/rescue1-volumes rescue1/docker-volumes    # lands under /mnt
 sudo rsync -aHAX /mnt/.ix-apps/docker/volumes/ /mnt/rescue1-volumes/
 ```
 
