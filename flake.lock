@@ -114,11 +114,11 @@
     "devvmhq-tap": {
       "flake": false,
       "locked": {
-        "lastModified": 1794075550,
-        "narHash": "sha256-3W5bkqWX4pftq4tS+atkG3U2yn7KtWJAQ4G+4pdTG9Q=",
+        "lastModified": 1794591658,
+        "narHash": "sha256-ms4aIiwlDnSAS8bdDdzBftxGthX06cLVt30Zz9zee5w=",
         "owner": "devvmhq",
         "repo": "homebrew-tap",
-        "rev": "08f0661c4416f134126cc0d19095a9944e1e3c75",
+        "rev": "4f256ce6870925e9d29f79942c7eb96bd138cbf2",
         "type": "github"
       },
       "original": {
