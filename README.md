@@ -5,7 +5,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 | Host | Output | Platform | Status |
 |---|---|---|---|
 | MacBook Pro (M3 Max) | `darwinConfigurations.MacBook-Pro-Michiel` | aarch64-darwin | In use |
-| Mac Studio (M1 Max, headless, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed; host name is a placeholder |
+| Mac Studio (M1 Max, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed |
 | Agent host (VM on TrueNAS SCALE) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
 
 ## Features
@@ -28,7 +28,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   ├── darwin/
 │   │   ├── MacBook-Pro-Michiel.nix  # MacBook entry point
 │   │   ├── default.nix              # MacBook profile (GUI, dock, casks, secrets)
-│   │   └── Mac-Studio.nix           # Headless Mac Studio entry point
+│   │   └── Mac-Studio.nix           # Mac Studio entry point
 │   └── nixos/
 │       ├── agent-host.nix           # NixOS agent-host VM entry point
 │       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
@@ -71,8 +71,9 @@ flowchart TD
 
 `modules/darwin/base.nix` holds the settings every Mac shares (Determinate-managed Nix, primary user, state
 version, shared modules). Laptop, GUI and secrets settings stay in the MacBook profile. The Mac Studio leaves
-out Homebrew, casks, Mac App Store apps, dock and input settings, and does not touch SIP, Gatekeeper,
-FileVault, Remote Login or power settings; those belong to the reviewed phase 9 bootstrap. The agent host is
+out Homebrew, casks, Mac App Store apps, dock and input settings. It adds key-only Remote Login, Tailscale,
+1Password and a loopback-only Ollama, and does not touch SIP, Gatekeeper, FileVault, Screen Sharing or power
+settings. The agent host is
 self-contained and does not import the shared modules, which carry workstation settings such as
 `allowBroken`.
 
@@ -104,9 +105,47 @@ passthrough in TrueNAS. The user `michielbruins` logs in with SSH keys only and 
 one on the console before using `sudo`. Join the tailnet manually with `tailscale up` until auth keys are
 handled as secrets.
 
+## Bootstrap — Mac Studio
+
+Use `bootstrap`, not `install`: `install` always activates the MacBook. Nothing here needs a secret, an SSH
+key or a checkout.
+
+**Before wiping.** Finish and verify the backups, then unplug every external drive.
+
+**Wipe and first login (by hand).**
+
+1. System Settings → General → Transfer or Reset → Erase All Content and Settings.
+2. In Setup Assistant, create the account `michielbruins` and turn on FileVault. Store the recovery key
+   somewhere that works without this Mac.
+3. In Terminal:
+
+   ```bash
+   curl -fsSLo /tmp/bootstrap https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/aarch64-darwin/bootstrap
+   bash /tmp/bootstrap Mac-Studio
+   ```
+
+   It installs the Command Line Tools and a pinned Determinate Nix, builds the host from GitHub, and asks
+   before it activates anything.
+
+**After the bootstrap (by hand).**
+
+1. Open 1Password, choose the QR code sign-in, and scan the code with 1Password on your iPhone. If the app
+   does not offer it, use the Secret Key or the setup code from 1Password.com.
+2. In 1Password → Settings → Developer, turn on the SSH agent and the CLI integration.
+3. Join the tailnet: `sudo tailscale up --qr`, and scan the code. The new node is called `mac-studio`; remove the old
+   one in the Tailscale admin console.
+4. From another Mac, check that `ssh michielbruins@<LAN address>` works with your key and that
+   `ssh -o PubkeyAuthentication=no` is refused.
+5. Restart without logging in, then run `ssh michielbruins@<LAN address>` from the LAN. macOS asks for the
+   account password once, unlocks FileVault and disconnects; the next connection uses your key. Do this while
+   you can still reach the keyboard.
+
+Screen Sharing, sleep settings and login items are not managed, because going headless is deferred. Ollama
+runs as a system service on `127.0.0.1:11434`, with no models.
+
 ## Bootstrap — fresh Mac
 
-The `install` script handles everything end-to-end on a brand-new Mac — no manual prerequisites needed.
+The `install` script handles everything end-to-end on a brand-new MacBook — no manual prerequisites needed.
 
 ```bash
 # 1. Clone the repo (git must already be available via Xcode CLT — the script installs it if not)
@@ -224,8 +263,7 @@ nix run .#apply-settings -- --only com.surteesstudios.Bartender
 nix run .#settings-watch -- com.surteesstudios.Bartender
 ```
 
-The commands pick the host from the Mac's `LocalHostName`; pass `--host <name>` to override it (the Mac
-Studio's host name is still a placeholder).
+The commands pick the host from the Mac's `LocalHostName`; pass `--host <name>` to override it.
 
 - **System Settings** go through [nix-plist-manager](https://github.com/sushydev/nix-plist-manager), a
   pinned flake input with typed options per System Settings pane. Capture leaves out settings at the macOS

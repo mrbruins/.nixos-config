@@ -135,6 +135,7 @@
         "create-keys" = mkApp "create-keys" system;
         "check-keys" = mkApp "check-keys" system;
         "install" = mkApp "install" system;
+        "bootstrap" = mkApp "bootstrap" system;
         "rollback" = mkApp "rollback" system;
         "pin-known-good" = mkApp "pin-known-good" system;
         "capture-settings" = mkSettingsApp "capture-settings" system;

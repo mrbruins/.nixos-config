@@ -1,0 +1,62 @@
+#!/bin/bash
+# Set up a freshly installed Mac from this repository. Needs no secrets, no
+# GitHub account and no checkout. Run by a human:
+#
+#   bootstrap <host>        host is a name in darwinConfigurations
+#   REF=<branch> bootstrap <host>   try an unmerged branch
+set -euo pipefail
+
+REPO="mrbruins/.nixos-config"
+REF="${REF:-main}"
+# Same release as the `determinate` flake input.
+INSTALLER="https://install.determinate.systems/nix/tag/v3.24.2"
+USER_NAME="michielbruins"
+
+step() { printf '\n\033[1;33m==> %s\033[0m\n' "$1"; }
+die() { printf '\033[0;31mError: %s\033[0m\n' "$1" >&2; exit 1; }
+
+HOST="${1:-}"
+case "$HOST" in
+  MacBook-Pro-Michiel | Mac-Studio) ;;
+  *) die "usage: bootstrap MacBook-Pro-Michiel|Mac-Studio" ;;
+esac
+[[ "$(uname -sm)" == "Darwin arm64" ]] || die "this needs an Apple silicon Mac"
+[[ "$(id -un)" == "$USER_NAME" ]] || die "log in as $USER_NAME, the account the configuration expects"
+[[ ! -e /run/current-system ]] || die "nix-darwin is already active here; use the day-to-day commands"
+fdesetup status | grep -q "FileVault is On" || die "turn on FileVault first, and store its recovery key"
+
+step "1/4 Xcode Command Line Tools"
+if ! xcode-select -p >/dev/null 2>&1; then
+  xcode-select --install >/dev/null 2>&1 || true
+  echo "Finish the installer window. Waiting…"
+  until xcode-select -p >/dev/null 2>&1; do sleep 10; done
+fi
+
+step "2/4 Determinate Nix"
+NIX=/nix/var/nix/profiles/default/bin/nix
+if [[ ! -x "$NIX" ]]; then
+  curl --proto '=https' --tlsv1.2 -fsSL "$INSTALLER" | sh -s -- install --no-confirm
+fi
+[[ -x "$NIX" ]] || die "Nix was not installed"
+
+step "3/4 Build $HOST from $REPO ($REF)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+FLAKE="$("$NIX" flake metadata --refresh --json "github:$REPO/$REF" | /usr/bin/plutil -extract url raw -)"
+echo "$FLAKE"
+"$NIX" build "$FLAKE#darwinConfigurations.$HOST.system" --out-link "$WORK/result"
+
+step "4/4 Activate $HOST"
+printf 'Activate %s on this Mac? [y/N] ' "$HOST"
+read -r answer </dev/tty
+[[ "$answer" == [yY] ]] || die "stopped before activation; nothing was changed beyond Nix itself"
+
+# nix-darwin refuses to replace files it does not recognise. Keep them aside.
+for f in /etc/bashrc /etc/zshrc /etc/zprofile /etc/zshenv /etc/nix/nix.custom.conf; do
+  if [[ -f "$f" && ! -L "$f" ]]; then
+    sudo mv "$f" "$f.before-nix-darwin"
+  fi
+done
+sudo "$WORK/result/sw/bin/darwin-rebuild" switch --flake "$FLAKE#$HOST"
+
+step "Done. Now follow \"After the bootstrap\" in the README."
