@@ -11,6 +11,20 @@ Docker; step 6 erases its boot disk.
   Verify both checksums. Write the NixOS one to a USB stick.
 - Home Assistant: Settings → System → Backups → make a full backup, download it to a Mac, and store its
   encryption key in 1Password. It is the way back if the VM does not boot (see step 8).
+- DNS must not depend on the NAS. UniFi: let DHCP hand out the gateway (`192.168.2.1`) as DNS server instead of
+  the NAS. Tailscale admin console → DNS: add `192.168.2.1` as a nameserver restricted to `m11s.nl`, and replace
+  the global nameserver (the NAS) with a public resolver. Renew the DHCP lease on a Mac, then check:
+
+  ```bash
+  scutil --dns | grep nameserver | sort -u                   # no 192.168.2.20
+  dig +short @192.168.2.1 truenas.m11s.nl                    # 192.168.2.20
+  curl -sI https://github.com | head -1
+  ```
+
+  Ad filtering stops until step 8. Away from home, `m11s.nl` does not resolve until something other than the NAS
+  routes the subnet.
+- Boot-test the NixOS stick: start the NAS from it once, up to the boot menu, then boot TrueNAS again. Not while a
+  copy is running.
 - Have a screen and keyboard on the NAS. SSH and DNS will be down.
 - Merge and build the `nas` host. CI must be green.
 

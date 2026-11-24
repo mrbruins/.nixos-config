@@ -1,6 +1,7 @@
 # Weekly pull request with flake inputs that are at least seven days old
-# (docs/adr/0003-seven-day-cooldown.md). It merges itself once the required
-# checks pass. Nothing is activated.
+# (docs/adr/0003-seven-day-cooldown.md). GitHub holds the checks of a pull
+# request opened by a workflow until a person approves them; after that it
+# merges itself. Nothing is activated.
 name: Update flake inputs
 
 on:
@@ -24,7 +25,6 @@ jobs:
     permissions:
       contents: write # push the branch, enable auto-merge
       pull-requests: write
-      actions: write # start the checks
     env:
       GH_TOKEN: ${{ github.token }}
       BRANCH: automation/flake-inputs
@@ -46,14 +46,13 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # A push with the workflow token starts no workflows, so the checks are
-      # started explicitly on the branch.
-      - name: Open the pull request and start its checks
+      - name: Open the pull request
         if: steps.update.outputs.changed == 'true'
         run: |
           git push --force origin "$BRANCH"
           {
             echo "Inputs that have been public for at least seven days. Lock file only."
+            echo "Click **Approve workflows to run**; it merges itself when the checks pass."
             echo
             echo '```'
             cat "$RUNNER_TEMP/summary"
@@ -64,5 +63,4 @@ jobs:
           else
             gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/body"
           fi
-          gh workflow run nix-checks.yml --ref "$BRANCH"
           gh pr merge "$BRANCH" --auto --squash
