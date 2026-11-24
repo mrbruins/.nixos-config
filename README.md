@@ -15,6 +15,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 - [nix-darwin](https://github.com/LnL7/nix-darwin) for macOS system management
 - [nix-homebrew](https://github.com/zhaofengli-wip/nix-homebrew) for declarative Homebrew cask management
 - [agenix](https://github.com/ryantm/agenix) for secrets management (age-encrypted, YubiKey-backed)
+- [nix-plist-manager](https://github.com/sushydev/nix-plist-manager) to capture and re-apply macOS settings on demand, outside `build-switch` (see [macOS settings](#macos-settings))
 
 ## Repository Structure
 
@@ -36,6 +37,12 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   ├── darwin/             # macOS-only config (base, casks, dock, secrets)
 │   └── home-manager/       # Reusable user-level features
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
+├── settings/               # Captured macOS settings, applied only by apply-settings
+│   ├── <host>/system.nix   # System Settings per Mac, written by capture-settings
+│   ├── shared.nix          # Optional, hand-written: settings both Macs share
+│   ├── ignore.txt          # Option paths capture-settings leaves out
+│   └── apps/               # manifest (domains and keys) and captured <domain>.plist
+├── lib/                    # Helpers for the settings apps
 └── apps/                   # Build/deploy shell scripts per architecture
     ├── aarch64-darwin/
     ├── aarch64-linux/
@@ -78,7 +85,7 @@ self-contained and does not import the shared modules, which carry workstation s
 | `nixosConfigurations.agent-host` | Agent-host VM system |
 | `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
 | `checks.x86_64-linux.agent-host` | Agent-host system closure |
-| `apps`, `devShells`, `formatter` | Imperative scripts, dev shell, `nixfmt` |
+| `apps`, `devShells`, `formatter` | Imperative scripts (including the [settings apps](#macos-settings)), dev shell, `nixfmt` |
 
 ### Nixpkgs channels
 
@@ -118,7 +125,9 @@ What the script does, step by step:
 | 5 | **SSH keys** — create new ed25519 keys or copy existing keys from a USB drive |
 | 6 | Run **`build-switch`** — builds and activates the full nix-darwin configuration |
 
-After the script finishes, open a new terminal to pick up all shell changes.
+After the script finishes, open a new terminal to pick up all shell changes. Then restore the captured
+macOS settings with `nix run .#apply-settings` and work through the
+[manual checklist](#what-apply-settings-cannot-restore).
 
 ## CI
 
@@ -188,6 +197,64 @@ nix run .#pin-known-good
 **Break glass (no GitHub, no network):** run the scripts directly, because `nix run` evaluates the
 flake: `~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
 generation without building anything. Homebrew and macOS changes are not reverted.
+
+### macOS settings
+
+System Settings and selected app preferences are captured from a running Mac into `settings/` and applied
+back with a separate command. Nothing here is a nix-darwin or Home Manager module: `build-switch` never
+writes these settings, so changing one in System Settings is not undone by the next switch. The repo is
+the record for bootstrapping a Mac, or for an app installed later.
+
+```bash
+# Record this Mac's settings into the checkout (refuses on main or with uncommitted settings/)
+nix run .#capture-settings            # --ui: also read settings macOS doesn't store (opens System Settings)
+                                      # --snapshots: also menu bar layout and wallpaper
+git diff -- settings                  # review, then commit and open a PR
+
+# What differs between this Mac and the checkout; writes nothing
+nix run .#settings-diff
+
+# Apply the committed settings: everything, one part of System Settings, or one app
+nix run .#apply-settings -- --dry-run
+nix run .#apply-settings
+nix run .#apply-settings -- --only applications.systemSettings.trackpad
+nix run .#apply-settings -- --only com.surteesstudios.Bartender
+
+# Find the preference keys a setting writes (Ctrl-C to stop)
+nix run .#settings-watch -- com.surteesstudios.Bartender
+```
+
+The commands pick the host from the Mac's `LocalHostName`; pass `--host <name>` to override it (the Mac
+Studio's host name is still a placeholder).
+
+- **System Settings** go through [nix-plist-manager](https://github.com/sushydev/nix-plist-manager), a
+  pinned flake input with typed options per System Settings pane. Capture leaves out settings at the macOS
+  default and the paths in `settings/ignore.txt`. The Dock's apps are in that list, because
+  `modules/darwin/dock` sets them on every switch. Apply writes only the captured settings, uses `sudo`
+  for the system-wide ones (firewall, power, sharing), and restarts Dock, Finder and other processes as
+  needed. Key repeat and trackpad gestures take effect after logging out.
+- **Apps** are listed in `settings/apps/manifest` with the exact top-level keys to keep. Whole
+  preference domains are never captured, since they hold licence keys, window positions and network
+  names, and this repository is public. Apply skips apps that aren't installed, and quits and reopens a
+  running app around the write.
+- nix-plist-manager is verified on the macOS build its defaults were recorded on (26A428). After a major
+  macOS upgrade, check `settings-diff` before applying, and update the input on its own
+  (`nix flake update nix-plist-manager`).
+
+#### What apply-settings cannot restore
+
+macOS keeps these outside the preferences system, or behind privacy protection, so set them by hand on a
+new Mac:
+
+- Privacy & Security permissions (TCC): Accessibility, Full Disk Access, Screen Recording, Camera,
+  Microphone and Automation, per app
+- FileVault
+- Apple Account and iCloud sign-in, and iCloud sync choices
+- Screen Time
+- Wallpaper, unless captured with `--snapshots`
+- Preferences of sandboxed apps whose container the terminal can't read (DeskPad, for example), unless
+  the terminal has Full Disk Access
+- Raycast, whose settings live in its own encrypted database: use Raycast's *Export Settings & Data*
 
 ### Build or evaluate a host without activating
 

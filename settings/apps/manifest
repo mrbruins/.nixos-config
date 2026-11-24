@@ -1,0 +1,16 @@
+# App preferences capture-settings records, beyond System Settings.
+# One line per preferences domain (usually the app's bundle id), then the
+# top-level keys to keep; `*` and `?` match like shell globs. Only listed keys
+# are captured: whole domains hold licence keys, window positions, timestamps
+# and network names, and this repository is public.
+# Find a setting's key with `nix run .#settings-watch -- <domain>`.
+
+# Bartender: menu bar behaviour and which items are shown or hidden. Its
+# licence (license6*) and triggers (they name Wi-Fi networks) stay out.
+com.surteesstudios.Bartender BartenderBarOnlyOnNotchScreens HideItemsWhenShowingOthers HideShownItemsLeaveItemsToRightOfBartender HideShownItemsWhen MenuBarShape MenuBarStyle MouseExitDelay OptionClickBartenderIconShows ProfileSettings ReduceMenuItemSpacing SeperatePills ShiftClickShowsAllItems ShowAllItemsWhenDragging ShowDivider SimpleLayoutModeEnabled UseBartenderBar bartenderAutoExtendsMenuBar
+
+# Not yet listed:
+# - The Unarchiver (cx.c3.theunarchiver): every setting is still at its default,
+#   so there is nothing to capture. Add keys once you change one.
+# - DeskPad (com.stengo.DeskPad): a sandboxed container the terminal can't
+#   read without Full Disk Access.

@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Apply the repo's captured settings to this Mac. Never run by build-switch.
+#
+#   nix run .#apply-settings -- [--host <name>] [--only <option prefix|app domain>] [--dry-run]
+#
+# Writes only the settings the repo lists and leaves every other preference
+# alone, so running it twice changes nothing. System Settings come from
+# settings/shared.nix and settings/<host>/system.nix (system-wide ones through
+# sudo); apps from settings/apps/<domain>.plist. Apps that aren't installed are
+# skipped; a running app is quit first and reopened afterwards.
+#
+#   --only applications.systemSettings.trackpad   just that part of System Settings
+#   --only com.surteesstudios.Bartender           just that app, e.g. right after installing it
+#   --dry-run                                     print the commands instead of running them
+set -euo pipefail
+. "$(dirname "$0")/../../lib/settings-common.sh"
+
+only="" dryRun=false
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host="$2"; shift ;;
+    --only) only="$2"; shift ;;
+    --dry-run) dryRun=true ;;
+    -h|--help) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) die "Unknown argument: $1" ;;
+  esac
+  shift
+done
+
+settings="$SETTINGS_SRC"
+systemSettings=true apps=true
+case "$only" in
+  "") ;;
+  applications|applications.*) apps=false ;;
+  *) systemSettings=false ;;
+esac
+
+if [ -n "$only" ] && ! $systemSettings && [ ! -f "$settings/apps/$only.plist" ]; then
+  die "Nothing captured for $only: not an option prefix (applications.…) or a domain in settings/apps/."
+fi
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+failures=0
+fail() {
+  printf "${RED}  %s${NC}\n" "$*" >&2
+  failures=$((failures + 1))
+}
+
+if $systemSettings; then
+  if [ ! -f "$settings/$host/system.nix" ] && [ ! -f "$settings/shared.nix" ]; then
+    say "No captured System Settings for $host (settings/$host/system.nix); skipping them."
+  else
+    say "System Settings ($host${only:+, only $only})..."
+    script=$(settingsEval "applyScript { npm = builtins.getFlake \"path:$NPM_ROOT\"; settingsDir = $(nixPath "$settings"); host = \"$host\"; only = \"$only\"; }") \
+      || die "Could not evaluate the System Settings to apply."
+    if [ -z "$script" ]; then
+      say "  nothing to apply"
+    elif $dryRun; then
+      printf '%s\n' "$script"
+    else
+      # nix-plist-manager reports a refused step on stderr and carries on;
+      # count those as failures too.
+      status=0
+      /bin/bash -c "$script" 2> "$work/system.err" || status=$?
+      cat "$work/system.err" >&2
+      [ "$status" -eq 0 ] || fail "System Settings script exited with status $status"
+      refused=$(grep -c '^nix-plist-manager: failed' "$work/system.err" || true)
+      [ "$refused" -eq 0 ] || fail "$refused System Settings steps failed (listed above)"
+    fi
+  fi
+fi
+
+if $apps; then
+  shopt -s nullglob
+  for stored in "$settings"/apps/*.plist; do
+    domain=$(basename "$stored" .plist)
+    [ -z "$only" ] || [ "$only" = "$domain" ] || continue
+    if [ -z "$(/usr/bin/mdfind "kMDItemCFBundleIdentifier == '$domain'" | head -n 1)" ]; then
+      say "$domain: not installed, skipped. Run with --only $domain after installing it."
+      continue
+    fi
+    say "$domain..."
+    # Read the stored keys first, so a broken file stops before the app is quit.
+    if ! plistKeys fragments "$stored" > "$work/fragments"; then
+      fail "$domain: could not read $stored; nothing written"
+      continue
+    fi
+    running=false
+    if [ "$(/usr/bin/osascript -e "application id \"$domain\" is running" 2>/dev/null)" = true ]; then
+      running=true
+      if $dryRun; then
+        echo "osascript -e 'quit app id \"$domain\"'"
+      elif ! /usr/bin/osascript -e "quit app id \"$domain\"" >/dev/null; then
+        fail "$domain: could not quit it; nothing written, since a running app overwrites its preferences"
+        continue
+      else
+        sleep 2
+      fi
+    fi
+    while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+      if $dryRun; then
+        printf 'defaults write %q %q %q\n' "$domain" "$key" "$value"
+      else
+        /usr/bin/defaults write "$domain" "$key" "$value" || fail "$domain: could not write $key"
+      fi
+    done < "$work/fragments"
+    if $running; then
+      if $dryRun; then
+        echo "open -b $domain"
+      else
+        /usr/bin/open -b "$domain" || fail "$domain: could not reopen it"
+      fi
+    fi
+  done
+fi
+
+if [ "$failures" -gt 0 ]; then
+  die "Finished with $failures failure(s); see above."
+fi
+ok "Done."

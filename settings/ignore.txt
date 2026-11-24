@@ -1,0 +1,18 @@
+# Option-path prefixes capture-settings never writes, one per line.
+# A prefix drops everything below it, e.g. a whole pane.
+
+# The Dock's apps and folders are managed by modules/darwin/dock on every switch.
+applications.systemSettings.desktopAndDock.dock.contents
+
+# Noise: settings nix-plist-manager knows no macOS default for, captured at
+# what is in fact the default (first capture, 2026-11-21, macOS 26A434).
+applications.systemSettings.accessibility.display.filterIntensity
+applications.systemSettings.accessibility.display.textSize
+applications.systemSettings.accessibility.hoverText
+applications.systemSettings.accessibility.liveCaptions
+applications.systemSettings.accessibility.readAndSpeak.speakAnnouncementsOptions
+applications.systemSettings.desktopAndDock.hotCorners.bottomLeft.modifiers
+applications.systemSettings.desktopAndDock.hotCorners.bottomRight.modifiers
+applications.systemSettings.desktopAndDock.hotCorners.topLeft.modifiers
+applications.systemSettings.desktopAndDock.hotCorners.topRight.modifiers
+applications.systemSettings.menuBar.clock.announceTheTime

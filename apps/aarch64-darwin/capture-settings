@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Capture this Mac's settings into the repo checkout you run it from.
+#
+#   nix run .#capture-settings -- [--host <name>] [--ui] [--snapshots]
+#
+# Writes settings/<host>/system.nix (System Settings, through nix-plist-manager)
+# and settings/apps/<domain>.plist (the keys settings/apps/manifest lists).
+# Paths in settings/ignore.txt are left out. Review the result with `git diff`
+# and open a PR; nothing is applied. `--ui` opens System Settings to read the
+# settings macOS doesn't store; `--snapshots` also captures the menu bar layout
+# and wallpaper into settings/<host>/snapshots.
+set -euo pipefail
+. "$(dirname "$0")/../../lib/settings-common.sh"
+
+ui=false snapshots=false
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --host) host="$2"; shift ;;
+    --ui) ui=true ;;
+    --snapshots) snapshots=true ;;
+    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) die "Unknown argument: $1" ;;
+  esac
+  shift
+done
+
+root=$(checkout)
+cd "$root"
+[ "$(git branch --show-current)" != main ] || die "On main: switch to a branch first, captures land through a PR."
+[ -z "$(git status --porcelain -- settings)" ] || die "settings/ has uncommitted changes; commit or discard them first."
+[ -f settings/ignore.txt ] || die "settings/ignore.txt is missing."
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+hostDir="settings/$host"
+mkdir -p "$hostDir"
+
+say "Reading System Settings for $host..."
+args=("$work/raw.nix")
+$ui && args+=(--ui)
+$snapshots && args+=(--snapshots "$root/$hostDir/snapshots")
+"$NPM_CURRENT" "${args[@]}"
+
+settingsEval "capture { raw = $(nixPath "$work/raw.nix"); ignoreFile = $(nixPath "$root/settings/ignore.txt"); }" \
+  | sed "s|$root/$hostDir/snapshots/|./snapshots/|g" > "$work/system.nix"
+nixfmt "$work/system.nix"
+mv "$work/system.nix" "$hostDir/system.nix"
+
+say "Reading app preferences listed in settings/apps/manifest..."
+mkdir -p settings/apps
+while read -r domain globs; do
+  stored="settings/apps/$domain.plist"
+  if ! exportDomain "$domain" "$work/domain.plist"; then
+    say "  $domain: can't read it (not installed, or a sandboxed container the terminal has no access to); kept $stored as it was"
+    continue
+  fi
+  # shellcheck disable=SC2086 # globs are separate words on purpose
+  kept=$(set -f; plistKeys filter "$work/domain.plist" "$work/kept.plist" $globs)
+  if [ "$kept" -eq 0 ]; then
+    rm -f "$stored"
+    say "  $domain: none of the listed keys are set"
+  else
+    mv "$work/kept.plist" "$stored"
+    say "  $domain: $kept keys"
+  fi
+done < <(manifestEntries settings/apps/manifest)
+
+ok "Captured. Review with: git diff -- settings"
+git status --short -- settings
