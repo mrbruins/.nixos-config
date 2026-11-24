@@ -5,7 +5,6 @@ let
   sshHome = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}/.ssh" else "/home/${user}/.ssh";
   externalSshConfig = "${sshHome}/config_external";
   truenasIdentityFile = "~/.config/ssh/public-keys/truenas.pub";
-  enecoIdentityFile = "~/.ssh/id_rsa_eneco";
 in {
 
   ".config/ssh/public-keys/truenas.pub" = {
@@ -130,11 +129,4 @@ in {
       *.swp
     '';
   };
-
-    ".npmrc" = {
-      text = ''
-        registry=https://registry.npmjs.org/
-        prefix=${if pkgs.stdenv.hostPlatform.isDarwin then "/Users/${user}/.npm-packages" else "/home/${user}/.npm-packages"}
-      '';
-    };
 }

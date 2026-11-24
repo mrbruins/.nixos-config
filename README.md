@@ -6,36 +6,34 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 |---|---|---|---|
 | MacBook Pro (M3 Max) | `darwinConfigurations.MacBook-Pro-Michiel` | aarch64-darwin | In use |
 | Mac Studio (M1 Max, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed |
-| Agent host (VM on TrueNAS SCALE) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
+| Agent host (VM) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
 
 ## Features
 
-- Cross-platform config in `modules/shared/`, ready for NixOS hosts
+- One command-line profile on every machine, on macOS and Linux
 - [Home Manager](https://github.com/nix-community/home-manager) for user-level dotfiles (zsh, git, tmux, vim, etc.)
 - [nix-darwin](https://github.com/LnL7/nix-darwin) for macOS system management
 - [nix-homebrew](https://github.com/zhaofengli-wip/nix-homebrew) for declarative Homebrew cask management
-- [agenix](https://github.com/ryantm/agenix) for secrets management (age-encrypted, YubiKey-backed)
-- [nix-plist-manager](https://github.com/sushydev/nix-plist-manager) to capture and re-apply macOS settings on demand, outside `build-switch` (see [macOS settings](#macos-settings))
+- [nix-plist-manager](https://github.com/sushydev/nix-plist-manager) to capture and re-apply macOS settings on demand, outside `rig switch` (see [macOS settings](#macos-settings))
 
 ## Repository Structure
 
 ```
 ├── flake.nix               # Entry point; inputs and system outputs
 ├── .github/
-│   ├── workflows/          # CI: flake evaluation and per-host closure builds
-│   └── scripts/            # CI helper scripts
+│   └── workflows/          # CI: flake evaluation and per-host closure builds
 ├── hosts/
 │   ├── darwin/
 │   │   ├── MacBook-Pro-Michiel.nix  # MacBook entry point
-│   │   ├── default.nix              # MacBook profile (GUI, dock, casks, secrets)
+│   │   ├── default.nix              # MacBook profile (GUI, dock, casks)
 │   │   └── Mac-Studio.nix           # Mac Studio entry point
 │   └── nixos/
 │       ├── agent-host.nix           # NixOS agent-host VM entry point
 │       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
+├── profiles/               # cli, workstation and server: what machines share
 ├── modules/
 │   ├── shared/             # Cross-platform system features
-│   ├── darwin/             # macOS-only config (base, casks, dock, secrets)
-│   └── home-manager/       # Reusable user-level features
+│   └── darwin/             # macOS-only config (base, casks, dock)
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
 ├── settings/               # Captured macOS settings, applied only by apply-settings
 │   ├── <host>/system.nix   # System Settings per Mac, written by capture-settings
@@ -44,38 +42,43 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   └── apps/               # manifest (domains and keys) and captured <domain>.plist
 ├── lib/                    # Helpers for the settings apps
 └── apps/                   # Build/deploy shell scripts per architecture
-    ├── aarch64-darwin/
-    ├── aarch64-linux/
-    └── x86_64-linux/
+    └── aarch64-darwin/
 ```
 
 ## Configuration Architecture
 
-The flake uses a hybrid host-oriented and feature-oriented layout. Hosts remain
-explicit composition roots, while reusable concerns are gradually extracted as
-small modules. Imports are explicit; there is no module registry or automatic
-import tree.
+Hosts are explicit composition roots. What machines share lives in three profiles:
+
+| Profile | Kind | Contents |
+|---|---|---|
+| `profiles/cli` | Home Manager | Shell, editor, command-line tools, direnv, and the seven-day cooldown for npm, Bun and uv. Every machine has it. |
+| `profiles/workstation` | Home Manager | Adds runtimes, fonts, and SSH and Git configuration. MacBook only. |
+| `profiles/server` | NixOS | Key-only SSH, Tailscale, one human account, and the CLI profile. |
+
+Imports are explicit; there is no module registry or automatic import tree.
 
 ```mermaid
 flowchart TD
   Flake[flake.nix] --> Mac[MacBook-Pro-Michiel]
   Flake --> Studio[Mac-Studio]
   Flake --> Agent[agent-host]
+  Flake --> Linux[any Linux machine]
   Mac --> Base[modules/darwin/base.nix]
   Studio --> Base
-  Base --> Shared[Shared system features]
-  Mac --> DarwinHM[Darwin Home Manager profile]
-  Studio --> ShellHM[home-manager/shell.nix]
-  Agent --> Hardware[agent-host/hardware.nix]
+  Base --> Shared[modules/shared]
+  Mac --> Workstation[profiles/workstation]
+  Agent --> Server[profiles/server]
+  Workstation --> CLI[profiles/cli]
+  Studio --> CLI
+  Server --> CLI
+  Linux --> CLI
 ```
 
 `modules/darwin/base.nix` holds the settings every Mac shares (Determinate-managed Nix, primary user, state
-version, shared modules). Laptop, GUI and secrets settings stay in the MacBook profile. The Mac Studio leaves
+version, shared modules). Laptop and GUI settings stay in the MacBook profile. The Mac Studio leaves
 out Homebrew, casks, Mac App Store apps, dock and input settings. It adds key-only Remote Login, Tailscale,
 1Password and a loopback-only Ollama, and does not touch SIP, Gatekeeper, FileVault, Screen Sharing or power
-settings. The agent host is
-self-contained and does not import the shared modules, which carry workstation settings such as
-`allowBroken`.
+settings. NixOS hosts do not import `modules/shared`.
 
 ### Flake outputs
 
@@ -85,8 +88,15 @@ self-contained and does not import the shared modules, which carry workstation s
 | `darwinConfigurations.Mac-Studio` | Mac Studio system |
 | `nixosConfigurations.agent-host` | Agent-host VM system |
 | `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
-| `checks.x86_64-linux.agent-host` | Agent-host system closure |
+| `checks.x86_64-linux.{agent-host,linux-cli}` | Agent-host system closure and the CLI profile on Linux |
+| `homeConfigurations."michielbruins@{x86_64,aarch64}-linux"` | The CLI profile on a Linux machine this repository does not manage |
 | `apps`, `devShells`, `formatter` | Imperative scripts (including the [settings apps](#macos-settings)), dev shell, `nixfmt` |
+
+### Any other Linux machine
+
+```bash
+nix run github:nix-community/home-manager/release-26.05 -- switch --flake github:mrbruins/.nixos-config#michielbruins@x86_64-linux
+```
 
 ### Nixpkgs channels
 
@@ -102,13 +112,11 @@ unstable, and its updates can be reviewed apart from the Macs. Moving it to the 
 labelled `nixos` and an EFI system partition labelled `boot`. Replace it with real values from
 `nixos-generate-config` after the TrueNAS VM exists. Nested KVM needs the VM's CPU mode set to host
 passthrough in TrueNAS. The user `michielbruins` logs in with SSH keys only and has no password, so set
-one on the console before using `sudo`. Join the tailnet manually with `tailscale up` until auth keys are
-handled as secrets.
+one on the console before using `sudo`. Join the tailnet with `sudo tailscale up --qr`.
 
-## Bootstrap — Mac Studio
+## Bootstrap — fresh Mac
 
-Use `bootstrap`, not `install`: `install` always activates the MacBook. Nothing here needs a secret, an SSH
-key or a checkout.
+Nothing here needs a secret, an SSH key or a checkout.
 
 **Before wiping.** Finish and verify the backups, then unplug every external drive.
 
@@ -121,7 +129,7 @@ key or a checkout.
 
    ```bash
    curl -fsSLo /tmp/bootstrap https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/aarch64-darwin/bootstrap
-   bash /tmp/bootstrap Mac-Studio
+   bash /tmp/bootstrap Mac-Studio   # or MacBook-Pro-Michiel
    ```
 
    It installs the Command Line Tools and a pinned Determinate Nix, builds the host from GitHub, and asks
@@ -132,135 +140,94 @@ key or a checkout.
 1. Open 1Password, choose the QR code sign-in, and scan the code with 1Password on your iPhone. If the app
    does not offer it, use the Secret Key or the setup code from 1Password.com.
 2. In 1Password → Settings → Developer, turn on the SSH agent and the CLI integration.
-3. Join the tailnet: `sudo tailscale up --qr`, and scan the code. The new node is called `mac-studio`; remove the old
-   one in the Tailscale admin console.
-4. From another Mac, check that `ssh michielbruins@<LAN address>` works with your key and that
+3. Join the tailnet. On the MacBook, sign in to the Tailscale app. On the Studio, run `sudo tailscale up --qr`
+   and scan the code; the new node is called `mac-studio`, so remove the old one in the admin console.
+4. Restore the captured macOS settings with `nix run github:mrbruins/.nixos-config#apply-settings`, if this
+   host has any, and work through the [manual checklist](#what-apply-settings-cannot-restore).
+5. Studio only: from another Mac, check that `ssh michielbruins@<LAN address>` works with your key and that
    `ssh -o PubkeyAuthentication=no` is refused.
-5. Restart without logging in, then run `ssh michielbruins@<LAN address>` from the LAN. macOS asks for the
+6. Studio only: restart without logging in, then run `ssh michielbruins@<LAN address>` from the LAN. macOS asks for the
    account password once, unlocks FileVault and disconnects; the next connection uses your key. Do this while
    you can still reach the keyboard.
 
-Screen Sharing, sleep settings and login items are not managed, because going headless is deferred. Ollama
-runs as a system service on `127.0.0.1:11434`, with no models.
-
-## Bootstrap — fresh Mac
-
-The `install` script handles everything end-to-end on a brand-new MacBook — no manual prerequisites needed.
-
-```bash
-# 1. Clone the repo (git must already be available via Xcode CLT — the script installs it if not)
-#    Or simply run the script directly if you already have curl and git:
-bash <(curl -fsSL https://raw.githubusercontent.com/mrbruins/.nixos-config/main/apps/aarch64-darwin/install)
-```
-
-What the script does, step by step:
-
-| Step | Action |
-|---|---|
-| 1 | Install **Xcode Command Line Tools** (`xcode-select --install`) if absent |
-| 2 | Install **[Determinate Nix](https://github.com/DeterminateSystems/nix-installer)** if absent |
-| 3 | **Clone** this repo (prompts for destination, default `~/Developer/nixos-config`) |
-| 4 | Run **`apply`** — collects username, email, GitHub username & secrets repo name; performs token substitution across all config files |
-| 5 | **SSH keys** — create new ed25519 keys or copy existing keys from a USB drive |
-| 6 | Run **`build-switch`** — builds and activates the full nix-darwin configuration |
-
-After the script finishes, open a new terminal to pick up all shell changes. Then restore the captured
-macOS settings with `nix run .#apply-settings` and work through the
-[manual checklist](#what-apply-settings-cannot-restore).
+On the Studio, Screen Sharing, sleep settings and login items are not managed, because going headless is
+deferred. Ollama runs as a system service on `127.0.0.1:11434`, with no models.
 
 ## CI
 
-`.github/workflows/nix-checks.yml` runs on pull requests to `main`, pushes to `main` and manual dispatch,
+`.github/workflows/nix-checks.yml` runs on pull requests (stacked ones too), pushes to `main` and manual dispatch,
 with read-only `contents` permission. It never activates a machine.
 
 1. **Evaluate** (`ubuntu-latest`): `nix flake check --all-systems --no-build`.
 2. **Build** each host's `checks.<system>.<host>` closure on a matching runner: `macos-latest` (ARM64) for
-   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host`.
+   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host` and `linux-cli`.
+
+3. **Required checks** passes when evaluation and all builds passed, except the MacBook's, which only informs.
+   `main` accepts nothing without it.
+
+### Updates
+
+`.github/workflows/update-lock.yml` opens a pull request every Monday that moves each branch-tracking input to
+the newest revision that has been public for seven days, and lets it merge once the required checks pass. Run
+it by hand with `gh workflow run update-lock.yml`. Inputs pinned to a version stay put until a person moves
+them: `determinate` (together with `apps/aarch64-darwin/bootstrap`), `homebrew-brew` and `disko`. To skip the
+cooldown for an urgent fix, run `nix flake update <input>` on a branch.
 
 Actions are pinned to full commit SHAs. This repository is public, so standard hosted runners (including
 ARM macOS) are free. If it becomes private, runs consume the plan's included minutes, macOS at a 10x
-multiplier (validation gate V09).
-
-### Secrets in CI (1Password)
-
-The `secrets` input is a private repository fetched over SSH. CI loads a read-only deploy key from
-1Password with [`1password/load-secrets-action`](https://github.com/1Password/load-secrets-action),
-authenticated by a service account that can read **only** the CI vault. The only GitHub-side secret is that
-service account's token.
-
-One-time setup (human):
-
-1. In 1Password, create the vault `ci-nixos-config`. Keep nothing else in it.
-2. In that vault, create an **SSH Key** item named `nix-secrets-deploy-key` (1Password generates an
-   Ed25519 key). The workflow reads its `private key` field in OpenSSH format.
-3. Add the item's public key to `mrbruins/nix-secrets` under *Settings → Deploy keys*, **without** write
-   access.
-4. Create a 1Password service account with **read-only** access to `ci-nixos-config` only, and store its
-   token as the Actions secret `OP_SERVICE_ACCOUNT_TOKEN` in this repository.
-
-Rotation: generate a new key in the item, replace the deploy key, done. No GitHub secret changes. Revoking the
-service account cuts CI off from every 1Password secret at once.
-
-Pull requests from forks and Dependabot do not receive Actions secrets, so their runs fail at the load step.
+multiplier.
 
 ## Prerequisites (day-to-day)
 
 - [Determinate Nix](https://github.com/DeterminateSystems/nix-installer) with flakes enabled
-- SSH key at `~/.ssh/id_ed25519` (used as agenix identity for secrets)
-- SSH agent running with access to the private `nix-secrets` repo
+- 1Password with its SSH agent on, to push to GitHub; building and activating need no secret
 
 ## Usage
 
 ### macOS
 
 ```bash
-# Full bootstrap on a fresh Mac
-nix run .#install
-
-# First-time setup on a machine that already has Nix
-nix run .#apply
-
-# Build and activate (day-to-day usage)
-nix run .#build-switch
-
-# Build only, no activation
-nix run .#build
-
-# Roll back to a retained generation (lists them, asks which; or pass a number / "previous")
-nix run .#rollback
-
-# Pin the running system as known-good (kept as a GC root, last two)
-nix run .#pin-known-good
+rig build                 # build this Mac from the checkout, change nothing
+rig switch                # build and activate the checkout, whatever branch it is on
+rig update                # pull main, switch, update Homebrew and exempt tools, show drift
+rig drift                 # what is installed or running but not declared
+rig try ffmpeg            # a shell with a package, without installing it
+rig rollback previous     # or a generation number; without one it lists them and asks
+rig pin                   # keep the running system as known-good (GC root, last two)
+rig settings diff         # macOS settings, see below
 ```
 
-**Break glass (no GitHub, no network):** run the scripts directly, because `nix run` evaluates the
-flake: `~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
+Before `rig` is installed, use `nix run .#rig -- switch`. Try a change with `rig switch` on a branch, then open
+a PR; you do not have to wait for CI (ADR 0001).
+
+**Break glass (no GitHub, no network):** `rig rollback previous` needs neither. If `rig` itself is broken, run
+`~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
 generation without building anything. Homebrew and macOS changes are not reverted.
 
 ### macOS settings
 
 System Settings and selected app preferences are captured from a running Mac into `settings/` and applied
-back with a separate command. Nothing here is a nix-darwin or Home Manager module: `build-switch` never
+back with a separate command. Nothing here is a nix-darwin or Home Manager module: `rig switch` never
 writes these settings, so changing one in System Settings is not undone by the next switch. The repo is
 the record for bootstrapping a Mac, or for an app installed later.
 
 ```bash
 # Record this Mac's settings into the checkout (refuses on main or with uncommitted settings/)
-nix run .#capture-settings            # --ui: also read settings macOS doesn't store (opens System Settings)
+rig settings capture      # --ui: also read settings macOS doesn't store (opens System Settings)
                                       # --snapshots: also menu bar layout and wallpaper
 git diff -- settings                  # review, then commit and open a PR
 
 # What differs between this Mac and the checkout; writes nothing
-nix run .#settings-diff
+rig settings diff
 
 # Apply the committed settings: everything, one part of System Settings, or one app
-nix run .#apply-settings -- --dry-run
-nix run .#apply-settings
-nix run .#apply-settings -- --only applications.systemSettings.trackpad
-nix run .#apply-settings -- --only com.surteesstudios.Bartender
+rig settings apply --dry-run
+rig settings apply
+rig settings apply --only applications.systemSettings.trackpad
+rig settings apply --only com.surteesstudios.Bartender
 
 # Find the preference keys a setting writes (Ctrl-C to stop)
-nix run .#settings-watch -- com.surteesstudios.Bartender
+rig settings watch com.surteesstudios.Bartender
 ```
 
 The commands pick the host from the Mac's `LocalHostName`; pass `--host <name>` to override it.
@@ -304,17 +271,9 @@ nix flake check --all-systems --no-build
 
 Building `x86_64-linux` on a Mac needs a remote Linux builder.
 
-### Key management
-
-```bash
-nix run .#create-keys   # Generate a new age key
-nix run .#copy-keys     # Copy keys from USB to ~/.ssh
-nix run .#check-keys    # Verify key availability
-```
-
 ### Dev shell
 
-Provides `git`, `age`, and `age-plugin-yubikey`:
+Provides `bash` and `git`:
 
 ```bash
 nix develop
@@ -326,7 +285,7 @@ ZSH is the default interactive shell. It is configured entirely through [Home Ma
 
 | Layer | File | Purpose |
 |---|---|---|
-| Core (shared) | `modules/shared/home-manager.nix` | ZSH enable, aliases, init script, integrations |
+| Core (shared) | `profiles/cli/programs.nix` | ZSH enable, aliases, init script, integrations |
 | macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
 | Shared system | `modules/shared/shell.nix` | System-level `programs.zsh.enable` |
 
@@ -351,45 +310,32 @@ The `initContent` block (prepended to `.zshrc`) handles:
 | `la` | `eza -lbhHigUmuSa …` | Extended metadata |
 | `lx` | `eza -lbhHigUmuSa@ …` | Extended metadata + xattrs |
 | `tree` | `eza --tree` | Directory tree |
-| `cat` | `bat` | Syntax-highlighted output |
 | `man` | `batman` | Man pages via bat |
-| `diff` | `batdiff` | Diff via bat |
 | `search` | `rg -p --glob '!node_modules/*'` | Ripgrep, node_modules excluded |
 | `..` … `......` | `z ..` … `z ../../../../..` | Zoxide-backed traversal |
 
 ### Integrations
 
 - **[zoxide](https://github.com/ajeetdsouza/zoxide)** — smart `cd` replacement; enabled with `enableZshIntegration = true`, invoked with `z`
-- **[bat](https://github.com/sharkdp/bat)** + bat-extras — replaces `cat`, `man`, `diff`; includes `batdiff`, `batman`, `batwatch`, `prettybat`, `batpipe`
+- **[bat](https://github.com/sharkdp/bat)** + bat-extras — replaces `man`; includes `batdiff`, `batman`, `batwatch`, `prettybat`, `batpipe`
 
 ### macOS-specific additions
 
-Defined in `modules/darwin/home-manager.nix` via `lib.recursiveUpdate` on top of the shared config:
+Defined in `modules/darwin/home-manager.nix`:
 
 - Shell is set to `pkgs.zsh` in `users.users.${user}`
 - Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)`
-- Session variable: `DOCKER_HOST=unix://$HOME/.lima/docker/sock/docker.sock`
 
 ## Adding Packages
 
 | What | Where |
 |---|---|
-| Shared CLI tool | `modules/shared/packages.nix` |
-| macOS-only CLI tool | `modules/darwin/packages.nix` |
+| CLI tool for every machine | `profiles/cli/packages.nix` |
+| Runtime or desktop tool for the MacBook | `profiles/workstation/packages.nix` |
 | macOS GUI app (Homebrew cask) | `modules/darwin/casks.nix` |
 | Custom derivation / fork | New file in `overlays/` |
 
 ## Secrets
 
-Secrets are age-encrypted and stored in a private [`nix-secrets`](https://github.com/mrbruins/nix-secrets) repo. To reference a secret:
-
-```nix
-# modules/darwin/secrets.nix
-age.secrets."my-secret" = {
-  symlink = true;
-  path = "/Users/${user}/.ssh/my-secret";
-  file = "${secrets}/my-secret.age";
-  mode = "600";
-  owner = "${user}";
-};
-```
+Secrets live only in 1Password, never in this repository or in a Nix store path. Nothing declared here needs
+one to build or activate.

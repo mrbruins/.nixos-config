@@ -7,7 +7,7 @@ Exempt tools are named explicitly; today they are Claude Code and t3-code, which
 ## Considered options
 
 - **Daily updates with auto-merge:** the fastest fixes, with no protection against a release that is pulled a day later.
-- **A person merges every update:** tried, and it left inputs 60 days behind.
+- **A person merges every update:** tried, and updates only happened when someone remembered.
 
 ## Consequences
 

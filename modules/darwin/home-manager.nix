@@ -21,8 +21,6 @@ let
   #   #!/bin/sh
   #   emacsclient -c -n &
   # '';
-  sharedFiles = import ../shared/files.nix { inherit config pkgs; };
-  additionalFiles = import ./files.nix { inherit user config pkgs; };
 in
 {
   imports = [
@@ -75,11 +73,10 @@ in
     useGlobalPkgs = true;
     backupFileExtension = "backup";
     users.${user} = { pkgs, config, lib, ... }:{
-      imports = [ ../home-manager/ssh.nix ];
+      imports = [ ../../profiles/workstation ];
 
       home = {
         enableNixpkgsReleaseCheck = false;
-        packages = pkgs.callPackage ./packages.nix {};
         stateVersion = "23.11";
         sessionVariables = {
           # DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
@@ -101,19 +98,16 @@ ${gitConfigBootstrap}
 EOF
         chmod 600 "$git_config_file"
       '';
-      programs = lib.mkMerge [
-        (import ../shared/home-manager.nix { inherit config pkgs lib; })
-        {
-          zsh.initContent = lib.mkAfter ''
-            eval "$(op completion zsh)"; compdef _op op
-          '';
-          zsh.shellAliases = {
-            docker = "lima nerdctl";
-            nerdctl = "lima nerdctl";
-            truenas-docker = "env -u DOCKER_HOST -u DOCKER_CONTEXT ${pkgs.docker}/bin/docker --context truenas";
-          };
-        }
-      ];
+      programs.zsh = {
+        initContent = lib.mkAfter ''
+          eval "$(op completion zsh)"; compdef _op op
+        '';
+        shellAliases = {
+          docker = "lima nerdctl";
+          nerdctl = "lima nerdctl";
+          truenas-docker = "env -u DOCKER_HOST -u DOCKER_CONTEXT ${pkgs.docker}/bin/docker --context truenas";
+        };
+      };
 
       # Marked broken Oct 20, 2022 check later to remove this
       # https://github.com/nix-community/home-manager/issues/3344

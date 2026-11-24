@@ -1,35 +1,22 @@
 # Evaluate the flake and build every host's system closure on a runner that
 # matches the host's OS and architecture. CI builds only; it never activates a
-# machine (ADR 0002: hosts pull approved main and activate locally).
+# machine.
 #
 # Runners: standard GitHub-hosted runners. On a public repository they are
 # free (including ARM macOS); if the repository becomes private they consume
-# the plan's included minutes, macOS at a 10x multiplier (validation gate V09).
+# the plan's included minutes, macOS at a 10x multiplier.
 # Do not replace a missing runner with evaluation only or with a self-hosted
 # runner on a real host without a reviewed decision.
-#
-# The flake's private `secrets` input is fetched over SSH with a read-only
-# deploy key on mrbruins/nix-secrets. The key lives in 1Password and is loaded
-# per job through a 1Password service account scoped to one CI vault:
-#   repository secret  OP_SERVICE_ACCOUNT_TOKEN
-#   secret reference   NIX_SECRETS_KEY_REF (below)
-# See README.md, section "CI".
 name: Nix checks
 
 on:
   pull_request:
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-
-env:
-  # Not a secret: a pointer into the CI vault. Vault, item and field names are
-  # set up as described in README.md, section "CI".
-  NIX_SECRETS_KEY_REF: "op://ci-nixos-config/nix-secrets-deploy-key/private key?ssh-format=openssh"
 
 concurrency:
   group: nix-checks-${{ github.ref }}
@@ -47,18 +34,6 @@ jobs:
 
       - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
 
-      - name: Load deploy key from 1Password
-        id: op
-        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NIX_SECRETS_DEPLOY_KEY: ${{ env.NIX_SECRETS_KEY_REF }}
-
-      - name: Configure SSH access to the private secrets input
-        env:
-          NIX_SECRETS_DEPLOY_KEY: ${{ steps.op.outputs.NIX_SECRETS_DEPLOY_KEY }}
-        run: .github/scripts/setup-secrets-ssh.sh
-
       - name: nix flake check --all-systems --no-build
         run: nix flake check --all-systems --no-build
 
@@ -67,6 +42,8 @@ jobs:
     needs: evaluate
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
+    # The MacBook does not pull main, so its build only informs (ADR 0001).
+    continue-on-error: ${{ matrix.host == 'MacBook-Pro-Michiel' }}
     strategy:
       fail-fast: false
       matrix:
@@ -80,6 +57,9 @@ jobs:
           - host: agent-host
             system: x86_64-linux
             runner: ubuntu-latest # x86_64
+          - host: linux-cli
+            system: x86_64-linux
+            runner: ubuntu-latest # x86_64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,17 +67,18 @@ jobs:
 
       - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
 
-      - name: Load deploy key from 1Password
-        id: op
-        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NIX_SECRETS_DEPLOY_KEY: ${{ env.NIX_SECRETS_KEY_REF }}
-
-      - name: Configure SSH access to the private secrets input
-        env:
-          NIX_SECRETS_DEPLOY_KEY: ${{ steps.op.outputs.NIX_SECRETS_DEPLOY_KEY }}
-        run: .github/scripts/setup-secrets-ssh.sh
-
       - name: Build system closure
         run: nix build --print-build-logs --no-link ".#checks.${{ matrix.system }}.${{ matrix.host }}"
+
+  # The one check the ruleset on main requires, so hosts can come and go.
+  required:
+    name: Required checks
+    needs: [evaluate, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Evaluation and every required build succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: test "$RESULTS" = "success success"

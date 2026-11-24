@@ -1,6 +1,13 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
-let user = "michielbruins"; in
+let
+  user = "michielbruins";
+in
 {
   # Shared shell configuration
   zsh = {
@@ -60,7 +67,7 @@ let user = "michielbruins"; in
       "...." = "z ../../..";
       "....." = "z ../../../..";
       "......" = "z ../../../../..";
-      
+
       # bat aliases
       # cat = "bat"; # alias interferes with AI agent tool use
       man = "batman";
@@ -70,22 +77,35 @@ let user = "michielbruins"; in
       # diff = "difft";
     };
   };
-  
+
   zoxide = {
     enable = true;
     enableZshIntegration = true;
-    options = [];
+    options = [ ];
   };
 
   bat = {
     enable = true;
-    extraPackages = with pkgs.bat-extras; [ batdiff batman batwatch prettybat batpipe ]; # TODO: Add batgrep againwhen bugs are fixed
+    extraPackages = with pkgs.bat-extras; [
+      batdiff
+      batman
+      batwatch
+      prettybat
+      batpipe
+    ]; # TODO: Add batgrep againwhen bugs are fixed
   };
 
   vim = {
     enable = true;
-    plugins = with pkgs.vimPlugins; [ vim-airline vim-airline-themes vim-startify vim-tmux-navigator ];
-    settings = { ignorecase = true; };
+    plugins = with pkgs.vimPlugins; [
+      vim-airline
+      vim-airline-themes
+      vim-startify
+      vim-tmux-navigator
+    ];
+    settings = {
+      ignorecase = true;
+    };
     extraConfig = ''
       "" General
       set number
@@ -190,8 +210,8 @@ let user = "michielbruins"; in
 
       let g:airline_theme='bubblegum'
       let g:airline_powerline_fonts = 1
-      '';
-     };
+    '';
+  };
 
   alacritty = {
     enable = false;
@@ -218,7 +238,6 @@ let user = "michielbruins"; in
           (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin 14)
         ];
       };
-
 
       colors = {
         primary = {
@@ -261,7 +280,7 @@ let user = "michielbruins"; in
       {
         plugin = power-theme;
         extraConfig = ''
-           set -g @tmux_power_theme 'gold'
+          set -g @tmux_power_theme 'gold'
         '';
       }
       {
@@ -332,6 +351,6 @@ let user = "michielbruins"; in
       bind-key -T copy-mode-vi 'C-k' select-pane -U
       bind-key -T copy-mode-vi 'C-l' select-pane -R
       bind-key -T copy-mode-vi 'C-\' select-pane -l
-      '';
-    };
+    '';
+  };
 }

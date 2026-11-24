@@ -1,6 +1,6 @@
 # Pure helpers for the capture-settings, settings-diff and apply-settings apps.
 # The apps evaluate this file with `nix eval --impure --expr` at run time; no
-# host configuration imports it, so build-switch never applies settings.
+# host configuration imports it, so `rig switch` never applies settings.
 #
 # Settings files hold one nix-plist-manager option tree
 # (`{ applications.systemSettings... = ...; }`), with user and system options

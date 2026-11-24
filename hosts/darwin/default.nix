@@ -1,29 +1,14 @@
-{
-  agenix,
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 
 {
 
   imports = [
     ../../modules/darwin/base.nix
-    ../../modules/darwin/secrets.nix
     ../../modules/darwin/home-manager.nix
-    agenix.darwinModules.default
   ];
 
-  # Turn off NIX_PATH warnings now that we're using flakes
-
   # Load configuration that is shared across systems
-  environment.systemPackages =
-    with pkgs;
-    [
-      agenix.packages."${pkgs.stdenv.hostPlatform.system}".default
-    ]
-    ++ (import ../../modules/shared/packages.nix { inherit pkgs; });
+  environment.systemPackages = import ../../profiles/cli/packages.nix { inherit pkgs; };
 
   system = {
     defaults = {

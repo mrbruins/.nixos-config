@@ -4,15 +4,17 @@ Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-
 
 ## Ground rules
 
-- **Build, never activate.** Agents evaluate and build. Activation (`build-switch`, `darwin-rebuild switch`, `nixos-rebuild switch`, `apply`, `install`, `rollback`) is a human action. Machines will later deploy `main` by pulling it, so reviewed merges to `main` are the only path to a running system.
-- **Public repository.** Everything committed here is world-readable, including the Nix store paths it produces. Secrets live only as agenix files in the private `nix-secrets` input (`secrets` in `flake.nix`) and are referenced by path in `modules/darwin/secrets.nix`. Public keys and hostnames are fine.
+- **Build, never activate.** Agents evaluate and build. Activation (`rig switch`, `rig update`, `rig rollback`, `darwin-rebuild switch`, `nixos-rebuild switch`, `bootstrap`) is a human action. The MacBook's user may activate any branch; always-on machines will pull `main`, so for them a reviewed merge is the only path (docs/adr/0001-macbook-does-not-pull.md).
+- **Public repository.** Everything committed here is world-readable, including the Nix store paths it produces. Secrets live only in 1Password; nothing here needs one to build or activate. Public keys and hostnames are fine.
 - **Branch and PR.** Work on a branch and open a PR against `main`. CI (`.github/workflows/nix-checks.yml`) must pass. Never push to `main` directly.
 
 ## Structure conventions
 
 - Hosts in `hosts/<platform>/` are explicit composition roots, and `flake.nix` wires each one up. Imports are always explicit, with one exception: every file in `overlays/` is auto-loaded by `modules/shared/common.nix`.
-- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's workstation layer on top of it (agenix secrets, Home Manager with casks and dock, workstation packages). `Mac-Studio` imports only `base.nix`, because it is deliberately minimal.
-- `agent-host` deliberately skips `modules/shared`, because that module enables `allowBroken` and `allowUnsupportedSystem`. Keep server hosts on reviewed, supported packages. It tracks `nixpkgs-stable`, while the Macs track `nixos-unstable`.
+- What machines share lives in `profiles/`: `cli` (Home Manager, every machine), `workstation` (Home Manager, MacBook) and `server` (NixOS). A tool goes into `cli` only if every machine should have it.
+- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's layer on top of it. `Mac-Studio` imports only `base.nix` and the CLI profile, because it is deliberately minimal.
+- Servers use reviewed, supported packages, so NixOS hosts skip `modules/shared`. They track `nixpkgs-stable` and `home-manager-stable`, while the Macs track `nixos-unstable`. `profiles/cli` has to evaluate on both.
+- Never set `allowBroken` or `allowUnsupportedSystem`.
 - Files marked as placeholders (the `agent-host` hardware and disk labels) stay placeholders until real inventory replaces them. Write down any assumption you make rather than inventing hardware facts.
 
 ## Verifying a change
@@ -28,4 +30,4 @@ A change is done when the relevant hosts evaluate and build (or CI builds them),
 
 ## Updating inputs
 
-Update one input per change: `nix flake update <input>`. `nixpkgs` (unstable, used by the Macs) and `nixpkgs-stable` (used by `agent-host`) are updated and reviewed separately. Homebrew is pinned through the `homebrew-brew` input, and taps are immutable flake inputs, so a new cask tap means a new input.
+A weekly workflow updates branch-tracking inputs that are seven days old, one commit per input. By hand, update one input per change: `nix flake update <input>`, and only to skip the cooldown or for a version-pinned input. `nixpkgs` (unstable, used by the Macs) and `nixpkgs-stable` (used by `agent-host`) are updated and reviewed separately. Homebrew is pinned through the `homebrew-brew` input, and taps are immutable flake inputs, so a new cask tap means a new input.

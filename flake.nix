@@ -1,10 +1,13 @@
 {
-  description = "Starter Configuration with secrets for MacOS and NixOS";
+  description = "Michiel's machines: nix-darwin and NixOS";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # Stable channel for NixOS servers (agent-host); see README.
+    # Stable channel for NixOS servers; see README.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
-    agenix.url = "github:ryantm/agenix";
+    home-manager-stable = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
     home-manager.url = "github:nix-community/home-manager";
     darwin = {
       url = "github:LnL7/nix-darwin/master";
@@ -31,12 +34,8 @@
       url = "github:tylergraydev/homebrew-cctm";
       flake = false;
     };
-    secrets = {
-      url = "git+ssh://git@github.com/mrbruins/nix-secrets.git";
-      flake = false;
-    };
     # Captures and applies macOS settings for the *-settings apps only; never
-    # imported as a module, so build-switch doesn't apply settings. See README.
+    # imported as a module, so `rig switch` doesn't apply settings. See README.
     nix-plist-manager = {
       url = "github:sushydev/nix-plist-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,13 +52,11 @@
       devvmhq-tap,
       cctm-tap,
       home-manager,
+      home-manager-stable,
       nixpkgs,
       nixpkgs-stable,
-      agenix,
-      secrets,
       nix-plist-manager,
     }@inputs:
-    # outputs = { self, darwin, determinate, home-manager, nixpkgs, agenix, secrets } @inputs:
     let
       user = "michielbruins";
       linuxSystems = [ "x86_64-linux" ];
@@ -77,8 +74,6 @@
               nativeBuildInputs = with pkgs; [
                 bashInteractive
                 git
-                age
-                age-plugin-yubikey
               ];
               shellHook = with pkgs; ''
                 export EDITOR=vim
@@ -91,8 +86,7 @@
           (nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
             #!/usr/bin/env bash
             PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-            echo "Running ${scriptName} for ${system}"
-            exec ${self}/apps/${system}/${scriptName}
+            exec ${self}/apps/${system}/${scriptName} "$@"
           '')
         }/bin/${scriptName}";
       };
@@ -123,19 +117,9 @@
             exec ${self}/apps/${system}/${scriptName} "$@"
           '')}/bin/${scriptName}";
         };
-      mkLinuxApps = system: {
-        "apply" = mkApp "apply" system;
-        "build-switch" = mkApp "build-switch" system;
-      };
       mkDarwinApps = system: {
-        "apply" = mkApp "apply" system;
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
-        "copy-keys" = mkApp "copy-keys" system;
-        "create-keys" = mkApp "create-keys" system;
-        "check-keys" = mkApp "check-keys" system;
-        "install" = mkApp "install" system;
         "bootstrap" = mkApp "bootstrap" system;
+        "rig" = mkApp "rig" system;
         "rollback" = mkApp "rollback" system;
         "pin-known-good" = mkApp "pin-known-good" system;
         "capture-settings" = mkSettingsApp "capture-settings" system;
@@ -173,14 +157,37 @@
         ./hosts/darwin/MacBook-Pro-Michiel.nix
       ];
       macStudioConfiguration = mkDarwinSystem [ ./hosts/darwin/Mac-Studio.nix ];
-      agentHostConfiguration = nixpkgs-stable.lib.nixosSystem {
-        modules = [ ./hosts/nixos/agent-host.nix ];
-      };
+      mkNixosSystem =
+        modules:
+        nixpkgs-stable.lib.nixosSystem {
+          modules = [ home-manager-stable.nixosModules.home-manager ] ++ modules;
+        };
+      agentHostConfiguration = mkNixosSystem [ ./hosts/nixos/agent-host.nix ];
+      # The CLI profile on a Linux machine this repository does not manage.
+      mkLinuxHome =
+        system:
+        home-manager-stable.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs-stable {
+            inherit system;
+            config.allowUnfreePredicate = pkg: pkg.pname or "" == "unrar";
+          };
+          modules = [
+            ./profiles/cli
+            {
+              home = {
+                username = user;
+                homeDirectory = "/home/${user}";
+                stateVersion = "26.05";
+              };
+              programs.home-manager.enable = true;
+              manual.manpages.enable = false;
+            }
+          ];
+        };
     in
     {
       devShells = forAllSystems devShell;
-      apps =
-        nixpkgs.lib.genAttrs linuxSystems mkLinuxApps // nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
+      apps = nixpkgs.lib.genAttrs darwinSystems mkDarwinApps;
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       darwinConfigurations = {
@@ -193,7 +200,12 @@
         "agent-host" = agentHostConfiguration;
       };
 
-      # One system closure per host, built by CI on a matching runner.
+      homeConfigurations = {
+        "${user}@x86_64-linux" = mkLinuxHome "x86_64-linux";
+        "${user}@aarch64-linux" = mkLinuxHome "aarch64-linux";
+      };
+
+      # One closure per host, built by CI on a matching runner.
       checks = {
         aarch64-darwin = {
           "MacBook-Pro-Michiel" = darwinConfiguration.config.system.build.toplevel;
@@ -201,6 +213,7 @@
         };
         x86_64-linux = {
           "agent-host" = agentHostConfiguration.config.system.build.toplevel;
+          "linux-cli" = self.homeConfigurations."${user}@x86_64-linux".activationPackage;
         };
       };
     };
