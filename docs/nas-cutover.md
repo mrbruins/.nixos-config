@@ -9,6 +9,8 @@ Docker; step 6 erases its boot disk.
   in 1Password and on a USB stick. Without it, a TrueNAS USB drive boots without your settings.
 - Download the TrueNAS ISO for the installed version or newer, and the NixOS 26.05 minimal ISO (x86_64).
   Verify both checksums. Write the NixOS one to a USB stick.
+- Home Assistant: Settings → System → Backups → make a full backup, download it to a Mac, and store its
+  encryption key in 1Password. It is the way back if the VM does not boot (see step 8).
 - Have a screen and keyboard on the NAS. SSH and DNS will be down.
 - Merge and build the `nas` host. CI must be green.
 
@@ -109,6 +111,23 @@ The old SSH host key is gone, so remove it with `ssh-keygen -R` on your machines
 Docker and the VM start by themselves once the pools are up. Check, in this order: Traefik and AdGuard answer,
 Dockhand shows every stack running, Home Assistant answers on its own address, the four shares mount from a
 Mac, and a container that transcodes sees `/dev/dri`.
+
+**If Home Assistant does not start** within a few minutes (`virsh console haos`), rebuild it instead of
+debugging it. The old disk stays as it is:
+
+```bash
+sudo systemctl stop haos && sudo virsh destroy haos
+sudo zfs rename Max/VMs/haos-vm Max/VMs/haos-vm-truenas
+sudo zfs create -s -V 32G Max/VMs/haos-vm
+# Download haos_ova-<version>.qcow2.xz from the Home Assistant OS releases page and verify its checksum.
+xz -d haos_ova-*.qcow2.xz
+sudo nix shell nixpkgs#qemu-utils -c qemu-img convert -O raw haos_ova-*.qcow2 /dev/zvol/Max/VMs/haos-vm
+sudo systemctl start haos
+```
+
+The MAC address stays the same, so it gets the same address. On its first page, choose *Restore from backup*
+and upload the backup. Going back to TrueNAS then needs the old disk's name back:
+`sudo zfs rename Max/VMs/haos-vm Max/VMs/haos-vm-new && sudo zfs rename Max/VMs/haos-vm-truenas Max/VMs/haos-vm`.
 
 DNS stays on the router during the cutover. Move it back to AdGuard when everything has been stable for a few
 days.
