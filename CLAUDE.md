@@ -30,4 +30,4 @@ A change is done when the relevant hosts evaluate and build (or CI builds them),
 
 ## Updating inputs
 
-Update one input per change: `nix flake update <input>`. `nixpkgs` (unstable, used by the Macs) and `nixpkgs-stable` (used by `agent-host`) are updated and reviewed separately. Homebrew is pinned through the `homebrew-brew` input, and taps are immutable flake inputs, so a new cask tap means a new input.
+A weekly workflow updates branch-tracking inputs that are seven days old, one commit per input. By hand, update one input per change: `nix flake update <input>`, and only to skip the cooldown or for a version-pinned input. `nixpkgs` (unstable, used by the Macs) and `nixpkgs-stable` (used by `agent-host`) are updated and reviewed separately. Homebrew is pinned through the `homebrew-brew` input, and taps are immutable flake inputs, so a new cask tap means a new input.

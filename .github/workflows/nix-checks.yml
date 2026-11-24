@@ -42,6 +42,8 @@ jobs:
     needs: evaluate
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
+    # The MacBook does not pull main, so its build only informs (ADR 0001).
+    continue-on-error: ${{ matrix.host == 'MacBook-Pro-Michiel' }}
     strategy:
       fail-fast: false
       matrix:
@@ -67,3 +69,16 @@ jobs:
 
       - name: Build system closure
         run: nix build --print-build-logs --no-link ".#checks.${{ matrix.system }}.${{ matrix.host }}"
+
+  # The one check the ruleset on main requires, so hosts can come and go.
+  required:
+    name: Required checks
+    needs: [evaluate, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Evaluation and every required build succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: test "$RESULTS" = "success success"

@@ -1,0 +1,68 @@
+# Weekly pull request with flake inputs that are at least seven days old
+# (docs/adr/0003-seven-day-cooldown.md). It merges itself once the required
+# checks pass. Nothing is activated.
+name: Update flake inputs
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: update-lock
+
+defaults:
+  run:
+    shell: bash # with pipefail
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # push the branch, enable auto-merge
+      pull-requests: write
+      actions: write # start the checks
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: automation/flake-inputs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
+
+      - name: Update the lock file
+        id: update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --create "$BRANCH"
+          .github/scripts/update-lock.sh | tee "$RUNNER_TEMP/summary"
+          if [ "$(git rev-list --count origin/main..HEAD)" -gt 0 ]; then
+            # Lock-only, or it must not merge by itself.
+            test "$(git diff --name-only origin/main...HEAD)" = flake.lock
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A push with the workflow token starts no workflows, so the checks are
+      # started explicitly on the branch.
+      - name: Open the pull request and start its checks
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git push --force origin "$BRANCH"
+          {
+            echo "Inputs that have been public for at least seven days. Lock file only."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/summary"
+            echo '```'
+          } > "$RUNNER_TEMP/body"
+          if [ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head "$BRANCH" --title "Update flake inputs" --body-file "$RUNNER_TEMP/body"
+          else
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/body"
+          fi
+          gh workflow run nix-checks.yml --ref "$BRANCH"
+          gh pr merge "$BRANCH" --auto --squash

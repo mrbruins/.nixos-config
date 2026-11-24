@@ -162,6 +162,17 @@ with read-only `contents` permission. It never activates a machine.
 2. **Build** each host's `checks.<system>.<host>` closure on a matching runner: `macos-latest` (ARM64) for
    `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host` and `linux-cli`.
 
+3. **Required checks** passes when evaluation and all builds passed, except the MacBook's, which only informs.
+   `main` accepts nothing without it.
+
+### Updates
+
+`.github/workflows/update-lock.yml` opens a pull request every Monday that moves each branch-tracking input to
+the newest revision that has been public for seven days, and lets it merge once the required checks pass. Run
+it by hand with `gh workflow run update-lock.yml`. Inputs pinned to a version stay put until a person moves
+them: `determinate` (together with `apps/aarch64-darwin/bootstrap`), `homebrew-brew` and `disko`. To skip the
+cooldown for an urgent fix, run `nix flake update <input>` on a branch.
+
 Actions are pinned to full commit SHAs. This repository is public, so standard hosted runners (including
 ARM macOS) are free. If it becomes private, runs consume the plan's included minutes, macOS at a 10x
 multiplier.
