@@ -2,8 +2,12 @@
   description = "Michiel's machines: nix-darwin and NixOS";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # Stable channel for NixOS servers (agent-host); see README.
+    # Stable channel for NixOS servers; see README.
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
+    home-manager-stable = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
     home-manager.url = "github:nix-community/home-manager";
     darwin = {
       url = "github:LnL7/nix-darwin/master";
@@ -48,6 +52,7 @@
       devvmhq-tap,
       cctm-tap,
       home-manager,
+      home-manager-stable,
       nixpkgs,
       nixpkgs-stable,
       nix-plist-manager,
@@ -154,9 +159,33 @@
         ./hosts/darwin/MacBook-Pro-Michiel.nix
       ];
       macStudioConfiguration = mkDarwinSystem [ ./hosts/darwin/Mac-Studio.nix ];
-      agentHostConfiguration = nixpkgs-stable.lib.nixosSystem {
-        modules = [ ./hosts/nixos/agent-host.nix ];
-      };
+      mkNixosSystem =
+        modules:
+        nixpkgs-stable.lib.nixosSystem {
+          modules = [ home-manager-stable.nixosModules.home-manager ] ++ modules;
+        };
+      agentHostConfiguration = mkNixosSystem [ ./hosts/nixos/agent-host.nix ];
+      # The CLI profile on a Linux machine this repository does not manage.
+      mkLinuxHome =
+        system:
+        home-manager-stable.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs-stable {
+            inherit system;
+            config.allowUnfreePredicate = pkg: pkg.pname or "" == "unrar";
+          };
+          modules = [
+            ./profiles/cli
+            {
+              home = {
+                username = user;
+                homeDirectory = "/home/${user}";
+                stateVersion = "26.05";
+              };
+              programs.home-manager.enable = true;
+              manual.manpages.enable = false;
+            }
+          ];
+        };
     in
     {
       devShells = forAllSystems devShell;
@@ -173,7 +202,12 @@
         "agent-host" = agentHostConfiguration;
       };
 
-      # One system closure per host, built by CI on a matching runner.
+      homeConfigurations = {
+        "${user}@x86_64-linux" = mkLinuxHome "x86_64-linux";
+        "${user}@aarch64-linux" = mkLinuxHome "aarch64-linux";
+      };
+
+      # One closure per host, built by CI on a matching runner.
       checks = {
         aarch64-darwin = {
           "MacBook-Pro-Michiel" = darwinConfiguration.config.system.build.toplevel;
@@ -181,6 +215,7 @@
         };
         x86_64-linux = {
           "agent-host" = agentHostConfiguration.config.system.build.toplevel;
+          "linux-cli" = self.homeConfigurations."${user}@x86_64-linux".activationPackage;
         };
       };
     };

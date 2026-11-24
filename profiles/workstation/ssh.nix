@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  sharedFiles = import ../shared/files.nix { inherit config pkgs; };
+  sharedFiles = import ./files.nix { inherit config pkgs; };
 in
 {
   home.file = lib.filterAttrs

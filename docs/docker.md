@@ -2,7 +2,7 @@
 
 This setup uses [Lima](https://lima-vm.io/) as a lightweight Linux VM and [nerdctl](https://github.com/containerd/nerdctl) as a Docker-compatible CLI, replacing Docker Desktop on macOS.
 
-Both `lima` and `nerdctl` are installed via `modules/darwin/packages.nix`. The shell aliases and `DOCKER_HOST` are configured in `modules/darwin/home-manager.nix`.
+Both `lima` and `nerdctl` are installed via `profiles/workstation/packages.nix`. The shell aliases and `DOCKER_HOST` are configured in `modules/darwin/home-manager.nix`.
 
 ## VM name
 
