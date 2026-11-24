@@ -13,6 +13,10 @@
       url = "github:LnL7/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko/v1.13.0";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
     nix-homebrew = {
       url = "github:zhaofengli-wip/nix-homebrew";
@@ -46,6 +50,7 @@
       self,
       darwin,
       determinate,
+      disko,
       nix-homebrew,
       homebrew-brew,
       dynatrace-oss-tap,
@@ -162,6 +167,10 @@
         nixpkgs-stable.lib.nixosSystem {
           modules = [ home-manager-stable.nixosModules.home-manager ] ++ modules;
         };
+      nasConfiguration = mkNixosSystem [
+        disko.nixosModules.disko
+        ./hosts/nixos/nas.nix
+      ];
       agentHostConfiguration = mkNixosSystem [ ./hosts/nixos/agent-host.nix ];
       # The CLI profile on a Linux machine this repository does not manage.
       mkLinuxHome =
@@ -198,6 +207,7 @@
 
       nixosConfigurations = {
         "agent-host" = agentHostConfiguration;
+        "nas" = nasConfiguration;
       };
 
       homeConfigurations = {
@@ -213,6 +223,10 @@
         };
         x86_64-linux = {
           "agent-host" = agentHostConfiguration.config.system.build.toplevel;
+          "nas" = nasConfiguration.config.system.build.toplevel;
+          "nas-storage" = import ./tests/nas-storage.nix {
+            pkgs = nixpkgs-stable.legacyPackages.x86_64-linux;
+          };
           "linux-cli" = self.homeConfigurations."${user}@x86_64-linux".activationPackage;
         };
       };

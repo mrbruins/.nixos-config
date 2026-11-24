@@ -1,6 +1,6 @@
 # .nixos-config
 
-Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-Studio`, and NixOS for `agent-host` (a VM on TrueNAS SCALE). The README covers layout, outputs, bootstrap and day-to-day commands. This file covers what the README does not: how to change the repo safely.
+Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-Studio`, and NixOS for `nas` (not deployed yet) and `agent-host` (a VM). The README covers layout, outputs, bootstrap and day-to-day commands. This file covers what the README does not: how to change the repo safely.
 
 ## Ground rules
 
@@ -14,6 +14,7 @@ Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-
 - What machines share lives in `profiles/`: `cli` (Home Manager, every machine), `workstation` (Home Manager, MacBook) and `server` (NixOS). A tool goes into `cli` only if every machine should have it.
 - `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's layer on top of it. `Mac-Studio` imports only `base.nix` and the CLI profile, because it is deliberately minimal.
 - Servers use reviewed, supported packages, so NixOS hosts skip `modules/shared`. They track `nixpkgs-stable` and `home-manager-stable`, while the Macs track `nixos-unstable`. `profiles/cli` has to evaluate on both.
+- `nas` reuses the TrueNAS pools, host ID, mount prefix and numeric IDs on purpose. Change them only with `docs/nas-cutover.md` in hand, and keep the `nas-storage` test passing. Disks are matched by ID, never by model.
 - Never set `allowBroken` or `allowUnsupportedSystem`.
 - Files marked as placeholders (the `agent-host` hardware and disk labels) stay placeholders until real inventory replaces them. Write down any assumption you make rather than inventing hardware facts.
 
