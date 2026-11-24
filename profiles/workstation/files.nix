@@ -67,8 +67,6 @@ in {
       [credential]
         azreposCredentialType = oauth
 
-      [credential "azrepos:org/enecomanagedcloud"]
-        username = Michiel.Bruins@eneco.com
 
       [commit]
         gpgsign = true
@@ -101,27 +99,7 @@ in {
       [url "ssh://git@github.com/"]
         insteadOf = https://github.com/
 
-      [url "ssh://eneco-bv@eneco-bv.ghe.com/"]
-        insteadOf = https://eneco-bv.ghe.com/
     '' else "";
-  };
-
-  ".config/git/config-work" = {
-    text = ''
-      [user]
-          name = Michiel-Bruins
-          email = michiel.bruins@eneco.com
-          signingkey = ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC6VpyQjfX83LGgNGVZkz2uECoOsQnIcQUnB3MuVCIj+I0XJymNHlEuEe/P3IG98Oh12dkhu2b38NwLcz11K4s5KGWRJOHVe4OZ6kF8DHNnAYuvHarRGyC3PuompachBcBxTY85UK9aUd1AbLsOwgnw0AyMjZHl0HAFu2Tif1YMJ+6gO5zCM9tOecflT97Xw/JiX408YPqJCaNPFPksjCAT6H/Yfux/SnW4sPQXw0yV12o3+0OD6m8+uWBryWna+NNcGh4prL6NDQCHLclc83xpVbLx8Cd0+jYShl0QYCGhvh8XfLA1UMg3+2m7ozcnDTqmcuxM5ESB1gpHRNLyLSBD4hXuw9niszMopIgK7i9N2iV+yq7qrTn64gvhpfWD673P+D78IiYNuYbBWlYEugrKXwWD+Wn1r34fnRs+Td9XBYIgRXBy8YpHgctpw1gUpMUmRPUJnFiNlYgVz+1bAtT59V4Iw+WlbgMo5wIfk1bqNB/muAl28YEo71/swead4IM=
-
-      [gpg]
-        format = ssh
-
-      [gpg "ssh"]
-        program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
-
-      [commit]
-        gpgsign = true
-    '';
   };
 
   ".config/git/ignore" = {

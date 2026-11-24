@@ -140,13 +140,14 @@ Nothing here needs a secret, an SSH key or a checkout.
 1. Open 1Password, choose the QR code sign-in, and scan the code with 1Password on your iPhone. If the app
    does not offer it, use the Secret Key or the setup code from 1Password.com.
 2. In 1Password → Settings → Developer, turn on the SSH agent and the CLI integration.
-3. Join the tailnet. On the MacBook, sign in to the Tailscale app. On the Studio, run `sudo tailscale up --qr`
+3. MacBook: run `rig link` to clone and link the private dotfiles. It needs the SSH agent from step 2.
+4. Join the tailnet. On the MacBook, sign in to the Tailscale app. On the Studio, run `sudo tailscale up --qr`
    and scan the code; the new node is called `mac-studio`, so remove the old one in the admin console.
-4. Restore the captured macOS settings with `nix run github:mrbruins/.nixos-config#apply-settings`, if this
+5. Restore the captured macOS settings with `nix run github:mrbruins/.nixos-config#apply-settings`, if this
    host has any, and work through the [manual checklist](#what-apply-settings-cannot-restore).
-5. Studio only: from another Mac, check that `ssh michielbruins@<LAN address>` works with your key and that
+6. Studio only: from another Mac, check that `ssh michielbruins@<LAN address>` works with your key and that
    `ssh -o PubkeyAuthentication=no` is refused.
-6. Studio only: restart without logging in, then run `ssh michielbruins@<LAN address>` from the LAN. macOS asks for the
+7. Studio only: restart without logging in, then run `ssh michielbruins@<LAN address>` from the LAN. macOS asks for the
    account password once, unlocks FileVault and disconnects; the next connection uses your key. Do this while
    you can still reach the keyboard.
 
@@ -191,6 +192,7 @@ rig build                 # build this Mac from the checkout, change nothing
 rig switch                # build and activate the checkout, whatever branch it is on
 rig update                # pull main, switch, update Homebrew and exempt tools, show drift
 rig drift                 # what is installed or running but not declared
+rig link                  # link the private dotfiles, cloning them first
 rig try ffmpeg            # a shell with a package, without installing it
 rig rollback previous     # or a generation number; without one it lists them and asks
 rig pin                   # keep the running system as known-good (GC root, last two)
@@ -334,6 +336,16 @@ Defined in `modules/darwin/home-manager.nix`:
 | Runtime or desktop tool for the MacBook | `profiles/workstation/packages.nix` |
 | macOS GUI app (Homebrew cask) | `modules/darwin/casks.nix` |
 | Custom derivation / fork | New file in `overlays/` |
+
+## Dotfiles
+
+| Kind | Where | Edited |
+|---|---|---|
+| Generated | this repository: shell, Git, SSH, tmux, vim, npm, Bun, uv | here, then `rig switch` |
+| Linked | the private `dotfiles` repository: Claude, OpenCode, Kilo, work identity | in place, by you or the app |
+| Own sync | VS Code Settings Sync, Raycast | in the app |
+
+Histories, sessions, caches and tokens are never dotfiles.
 
 ## Secrets
 
