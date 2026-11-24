@@ -18,6 +18,7 @@ in
     ./nas/samba.nix
     ./nas/snapshots.nix
     ./nas/storage.nix
+    ./nas/updates.nix
   ];
 
   boot.loader = {

@@ -55,7 +55,7 @@ Hosts are explicit composition roots. What machines share lives in three profile
 |---|---|---|
 | `profiles/cli` | Home Manager | Shell, editor, command-line tools, direnv, and the seven-day cooldown for npm, Bun and uv. Every machine has it. |
 | `profiles/workstation` | Home Manager | Adds runtimes, fonts, and SSH and Git configuration. MacBook only. |
-| `profiles/server` | NixOS | Key-only SSH, Tailscale, one human account, and the CLI profile. |
+| `profiles/server` | NixOS | Key-only SSH, Tailscale, one human account, pulling `main`, and the CLI profile. |
 
 Imports are explicit; there is no module registry or automatic import tree.
 
@@ -170,12 +170,26 @@ with read-only `contents` permission. It never activates a machine.
 3. **Required checks** passes when evaluation and all builds passed, except the MacBook's, which only informs.
    `main` accepts nothing without it.
 
+### Deployment
+
+The NixOS hosts and the Mac Studio run [comin](https://github.com/nlewo/comin), which builds `main` as it
+changes. Its `testing-<host>` branch is switched off, so nothing but `main` can reach a machine.
+
+| Machine | When it deploys |
+|---|---|
+| MacBook | Never by itself: `rig switch` or `rig update` |
+| Mac Studio | Only after `sudo comin confirmation accept`, while comin on macOS is on trial |
+| NAS | Sundays at 05:00, or sooner with `sudo comin confirmation accept` |
+| Agent host | As soon as it is built |
+
+`comin status` shows what is running and waiting.
+
 ### Updates
 
 `.github/workflows/update-lock.yml` opens a pull request every Monday that moves each branch-tracking input to
 the newest revision that has been public for seven days, and lets it merge once the required checks pass. Run
 it by hand with `gh workflow run update-lock.yml`. Inputs pinned to a version stay put until a person moves
-them: `determinate` (together with `apps/aarch64-darwin/bootstrap`), `homebrew-brew` and `disko`. To skip the
+them: `determinate` (together with `apps/aarch64-darwin/bootstrap`), `homebrew-brew`, `comin` and `disko`. To skip the
 cooldown for an urgent fix, run `nix flake update <input>` on a branch.
 
 Actions are pinned to full commit SHAs. This repository is public, so standard hosted runners (including

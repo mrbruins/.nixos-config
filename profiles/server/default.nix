@@ -8,6 +8,8 @@ in
 # one human account. Servers use reviewed, supported packages only, so this
 # does not import modules/shared.
 {
+  imports = [ ../pull.nix ];
+
   networking.firewall.enable = true;
 
   services = {

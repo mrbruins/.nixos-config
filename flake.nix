@@ -13,6 +13,10 @@
       url = "github:LnL7/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    comin = {
+      url = "github:nlewo/comin/v0.14.0";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
     disko = {
       url = "github:nix-community/disko/v1.13.0";
       inputs.nixpkgs.follows = "nixpkgs-stable";
@@ -48,6 +52,7 @@
   outputs =
     {
       self,
+      comin,
       darwin,
       determinate,
       disko,
@@ -161,11 +166,18 @@
         }
         ./hosts/darwin/MacBook-Pro-Michiel.nix
       ];
-      macStudioConfiguration = mkDarwinSystem [ ./hosts/darwin/Mac-Studio.nix ];
+      macStudioConfiguration = mkDarwinSystem [
+        comin.darwinModules.comin
+        ./hosts/darwin/Mac-Studio.nix
+      ];
       mkNixosSystem =
         modules:
         nixpkgs-stable.lib.nixosSystem {
-          modules = [ home-manager-stable.nixosModules.home-manager ] ++ modules;
+          modules = [
+            comin.nixosModules.comin
+            home-manager-stable.nixosModules.home-manager
+          ]
+          ++ modules;
         };
       nasConfiguration = mkNixosSystem [
         disko.nixosModules.disko

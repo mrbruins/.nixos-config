@@ -27,33 +27,41 @@ for d in Lewis/photos Lewis/videos Lewis/backups Lewis/Media/home-movies; do sud
 
 Docker and the VM stay off until step 8.
 
-## 3. Copy to two drives
+## 3. Finish the copy on the external drive
 
-Connect the first empty 2 TB drive. Find its ID and check it twice; creating the pool erases it.
+The drive with the pool `passport` already holds the photos, videos, home movies and older backups, verified by
+hash. **Do not create a pool on it again: that erases it.** What is still missing is the container data and
+Home Assistant, which had to wait for a moment when nothing writes to them.
 
 ```bash
-ls -l /dev/disk/by-id/ | grep usb-
-sudo zpool create -R /mnt -O compression=zstd -O encryption=aes-256-gcm -O keyformat=passphrase -O mountpoint=none \
-  rescue1 /dev/disk/by-id/<drive 1>
-for d in Lewis/photos Lewis/videos Lewis/Media/home-movies Max/docker/data Max/docker/stacks Max/VMs/haos-vm; do
-  sudo zfs send -v "$d@before-nixos" | sudo zfs receive -u "rescue1/${d//\//-}"
+sudo zpool import -R /mnt passport 2>/dev/null; sudo zpool status passport     # ONLINE, no errors
+sudo zfs create -o encryption=aes-256-gcm -o keyformat=passphrase -o mountpoint=none passport/nas
+for d in Max/docker/data Max/docker/stacks Max/VMs/haos-vm Max/ix-apps/docker; do sudo zfs list "$d@before-nixos"; done
+for d in Max/docker/data Max/docker/stacks Max/VMs/haos-vm; do
+  sudo zfs send -v "$d@before-nixos" | sudo zfs receive -u "passport/nas/${d//\//-}"
 done
-sudo zfs create -o mountpoint=/rescue1-volumes rescue1/docker-volumes    # lands under /mnt
-sudo rsync -aHAX /mnt/.ix-apps/docker/volumes/ /mnt/rescue1-volumes/
+sudo zfs create -o mountpoint=/passport-volumes passport/nas/docker-volumes    # lands under /mnt
+sudo zfs mount Max/ix-apps/docker 2>/dev/null
+sudo rsync -aHAX --info=progress2 /mnt/.ix-apps/docker/volumes/ /mnt/passport-volumes/
 ```
 
-If `docker/` is already unmounted, mount it first with `sudo zfs mount Max/ix-apps/docker`. Put
-`Lewis/backups` on the second drive the same way, as `rescue2`.
+This part is encrypted, because it holds the stacks' secrets. Store the passphrase in 1Password.
 
-**Verify.** Scrub each drive and require zero errors. Then restore one database and a folder of photos to
-another place and open them:
+Add what changed in the shares since the first copy. Compare first, and stop if it wants to delete anything:
 
 ```bash
-sudo zpool scrub -w rescue1 && sudo zpool status -v rescue1
-sudo zpool export rescue1
+for d in photos videos; do sudo rsync -aHn --itemize-changes --delete "/mnt/Lewis/$d/" "/mnt/passport/$d/" | head; done
 ```
 
-Store the passphrases in 1Password. Unplug the drives. Do not continue until both are verified.
+**Verify.** Then restore one database from the drive to another place and open it:
+
+```bash
+sudo zpool scrub -w passport && sudo zpool status -v passport
+sudo zfs list -r -o name,used,encryption passport
+sudo zpool export passport
+```
+
+Unplug the drive. Do not continue until it is verified and exported.
 
 ## 4. Prepare the Docker copy and export
 
