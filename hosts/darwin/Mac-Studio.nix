@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   user = "michielbruins";
@@ -15,7 +15,10 @@ in
 # items stay under human control. So do FileVault, SIP and Gatekeeper, which
 # must stay on.
 {
-  imports = [ ../../modules/darwin/base.nix ];
+  imports = [
+    ../../modules/darwin/base.nix
+    ../../profiles/pull.nix
+  ];
 
   networking.hostName = "Mac-Studio";
 
@@ -43,6 +46,23 @@ in
 
     # A system daemon, so the tailnet works before anyone logs in.
     tailscale.enable = true;
+  };
+
+  # comin on macOS is on trial: it builds main by itself, but deploys only after
+  # `sudo comin confirmation accept`.
+  services.comin.deployConfirmer.mode = "manual";
+
+  # Determinate manages Nix, so comin's own default (config.nix.package) does
+  # not exist here.
+  launchd.daemons.comin.serviceConfig.EnvironmentVariables = lib.mkForce {
+    PATH = lib.concatStringsSep ":" [
+      "/nix/var/nix/profiles/default/bin"
+      (lib.makeBinPath [
+        pkgs.git
+        pkgs.openssh
+      ])
+      "/usr/bin:/bin:/usr/sbin:/sbin"
+    ];
   };
 
   # Loopback only: LiteLLM access needs a firewall rule that admits only the

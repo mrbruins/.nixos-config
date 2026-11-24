@@ -26,7 +26,10 @@ in {
         ForwardAgent no
       '' else ""}
 
-      Host truenas.m11s.nl
+      Host mac-studio
+        User michielbruins
+
+      Host nas nas.m11s.nl truenas.m11s.nl
         IdentityFile ${truenasIdentityFile}
         IdentitiesOnly yes
 

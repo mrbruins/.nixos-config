@@ -14,7 +14,7 @@ set -euo pipefail
 COOLDOWN_DAYS="${COOLDOWN_DAYS:-7}"
 DRY_RUN="${DRY_RUN:-}"
 # Inputs whose `ref` is a tag, not a branch.
-PINNED=" disko homebrew-brew "
+PINNED=" comin disko homebrew-brew "
 
 cutoff="$(date -u -d "$COOLDOWN_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)"
 echo "Newest revisions public since before $cutoff"
