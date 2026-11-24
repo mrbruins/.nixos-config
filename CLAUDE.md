@@ -11,9 +11,9 @@ Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-
 ## Structure conventions
 
 - Hosts in `hosts/<platform>/` are explicit composition roots, and `flake.nix` wires each one up. Imports are always explicit, with one exception: every file in `overlays/` is auto-loaded by `modules/shared/common.nix`.
-- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's workstation layer on top of it (agenix secrets, Home Manager with casks and dock, workstation packages). `Mac-Studio` imports only `base.nix`, because it is deliberately headless and minimal.
+- `modules/darwin/base.nix` holds the settings both Macs share. `hosts/darwin/default.nix` is the MacBook's workstation layer on top of it (agenix secrets, Home Manager with casks and dock, workstation packages). `Mac-Studio` imports only `base.nix`, because it is deliberately minimal.
 - `agent-host` deliberately skips `modules/shared`, because that module enables `allowBroken` and `allowUnsupportedSystem`. Keep server hosts on reviewed, supported packages. It tracks `nixpkgs-stable`, while the Macs track `nixos-unstable`.
-- Files marked as placeholders (the `agent-host` hardware and disk labels, the `Mac-Studio` hostname) stay placeholders until real inventory replaces them. Write down any assumption you make rather than inventing hardware facts.
+- Files marked as placeholders (the `agent-host` hardware and disk labels) stay placeholders until real inventory replaces them. Write down any assumption you make rather than inventing hardware facts.
 
 ## Verifying a change
 
