@@ -10,11 +10,12 @@ let
       path = ~/.config/git/config-platform
     # Personal identity (mrbruins, noreply email, 1Password SSH signing) is the
     # default for every repo, wherever it lives. Git applies later includes over
-    # earlier ones, so the Eneco override must stay last.
+    # earlier ones, so the private part, which holds the work identity, must
+    # stay last. `rig link` provides it; Git ignores it when it is missing.
     [include]
       path = ~/.config/git/config-personal
-    [includeIf "gitdir:~/dev/Eneco/"]
-      path = ~/.config/git/config-work
+    [include]
+      path = ~/.config/git/private/config
   '';
   # Comment out Emacs launcher
   # myEmacsLauncher = pkgs.writeScript "emacs-launcher.command" ''

@@ -4,6 +4,7 @@ set -euo pipefail
 
 HOST="${RIG_HOST:-$(/usr/sbin/scutil --get LocalHostName)}"
 REPO="${RIG_REPO:-}"
+DOTFILES="${RIG_DOTFILES:-$HOME/.dotfiles}"
 # Filled in by modules/darwin/rig.nix.
 DECLARED="${RIG_DECLARED:-}"
 APPS="${RIG_APPS:-$(cd "$(dirname "$0")" && pwd)}"
@@ -20,6 +21,7 @@ rig drift                 list what is installed or running but not declared; ch
 rig rollback [gen]        re-activate a retained generation, offline
 rig pin                   keep the running system as known-good
 rig settings <command>    capture, diff, apply or watch macOS settings
+rig link [option]         link the private dotfiles; --check, --adopt or --replace
 rig try <package>... [-- <command>]   use a package without installing it
 
 The checkout is the current directory's, or ~/.nixos-config. Override with RIG_REPO, and the host with RIG_HOST.
@@ -118,6 +120,13 @@ drift() {
       -name '*.plist' -exec basename {} \; 2>/dev/null | sort -u) \
     | section "Launch agents no longer declared"
 
+  if [[ -x "$DOTFILES/link" ]]; then
+    { "$DOTFILES/link" --check || true; } | section "Private dotfiles not linked"
+    git -C "$DOTFILES" status --short | section "Uncommitted changes in $DOTFILES"
+  else
+    echo "run rig link" | section "No private dotfiles at $DOTFILES"
+  fi
+
   findRepo
   git -C "$REPO" status --short | section "Uncommitted changes in $REPO"
   local want
@@ -127,6 +136,14 @@ drift() {
   else
     echo "nix eval failed" | section "Could not evaluate $REPO"
   fi
+}
+
+link() {
+  if [[ ! -d "$DOTFILES" ]]; then
+    say "Cloning the private dotfiles to $DOTFILES"
+    git clone git@github.com:mrbruins/dotfiles.git "$DOTFILES"
+  fi
+  exec "$DOTFILES/link" "$@"
 }
 
 try() {
@@ -154,6 +171,7 @@ case "$command" in
   drift) drift ;;
   rollback) exec "$APPS/rollback" "$@" ;;
   pin) exec "$APPS/pin-known-good" ;;
+  link) link "$@" ;;
   try) try "$@" ;;
   settings)
     sub="${1:-}"
