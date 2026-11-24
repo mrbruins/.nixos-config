@@ -9,7 +9,6 @@ in
 # Deliberately minimal. Not included here, compared with the MacBook:
 # - Homebrew / nix-homebrew, casks and Mac App Store apps.
 # - Dock, trackpad, keyboard and Touch ID settings.
-# - agenix secrets.
 # - The workstation package set from modules/shared/packages.nix.
 #
 # Going headless is deferred, so Screen Sharing, power/sleep settings and login
