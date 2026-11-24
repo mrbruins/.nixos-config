@@ -1,11 +1,12 @@
 # nixos-config
 
-A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration for `michielbruins`. The Macs track `nixos-unstable`; the NixOS agent host tracks the stable `nixos-26.05` channel (see [Nixpkgs channels](#nixpkgs-channels)). The earlier, never-deployed NAS configuration was removed; the NAS runs TrueNAS SCALE.
+A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration for `michielbruins`. The Macs track `nixos-unstable`; the NixOS agent host tracks the stable `nixos-26.05` channel (see [Nixpkgs channels](#nixpkgs-channels)). The NAS still runs TrueNAS SCALE.
 
 | Host | Output | Platform | Status |
 |---|---|---|---|
 | MacBook Pro (M3 Max) | `darwinConfigurations.MacBook-Pro-Michiel` | aarch64-darwin | In use |
 | Mac Studio (M1 Max, future inference) | `darwinConfigurations.Mac-Studio` | aarch64-darwin | Not yet deployed |
+| NAS | `nixosConfigurations.nas` | x86_64-linux | Not yet deployed; see [the cutover](docs/nas-cutover.md) |
 | Agent host (VM) | `nixosConfigurations.agent-host` | x86_64-linux | Not yet deployed; hardware and disk layout are placeholders |
 
 ## Features
@@ -28,6 +29,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   │   ├── default.nix              # MacBook profile (GUI, dock, casks)
 │   │   └── Mac-Studio.nix           # Mac Studio entry point
 │   └── nixos/
+│       ├── nas.nix                  # NAS entry point; its parts are in nas/
 │       ├── agent-host.nix           # NixOS agent-host VM entry point
 │       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
 ├── profiles/               # cli, workstation and server: what machines share
@@ -86,9 +88,10 @@ settings. NixOS hosts do not import `modules/shared`.
 |---|---|
 | `darwinConfigurations.MacBook-Pro-Michiel` | MacBook system (also exposed as the legacy alias `darwinConfigurations.aarch64-darwin`) |
 | `darwinConfigurations.Mac-Studio` | Mac Studio system |
-| `nixosConfigurations.agent-host` | Agent-host VM system |
+| `nixosConfigurations.{nas,agent-host}` | NAS and agent-host VM systems |
 | `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
-| `checks.x86_64-linux.{agent-host,linux-cli}` | Agent-host system closure and the CLI profile on Linux |
+| `checks.x86_64-linux.{nas,agent-host,linux-cli}` | NixOS system closures and the CLI profile on Linux |
+| `checks.x86_64-linux.nas-storage` | VM test: TrueNAS-style pools, Docker and Samba after a boot |
 | `homeConfigurations."michielbruins@{x86_64,aarch64}-linux"` | The CLI profile on a Linux machine this repository does not manage |
 | `apps`, `devShells`, `formatter` | Imperative scripts (including the [settings apps](#macos-settings)), dev shell, `nixfmt` |
 
@@ -161,7 +164,8 @@ with read-only `contents` permission. It never activates a machine.
 
 1. **Evaluate** (`ubuntu-latest`): `nix flake check --all-systems --no-build`.
 2. **Build** each host's `checks.<system>.<host>` closure on a matching runner: `macos-latest` (ARM64) for
-   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `agent-host` and `linux-cli`.
+   `MacBook-Pro-Michiel` and `Mac-Studio`, `ubuntu-latest` (x86_64) for `nas`, `agent-host` and `linux-cli`, and the
+   `nas-storage` VM test.
 
 3. **Required checks** passes when evaluation and all builds passed, except the MacBook's, which only informs.
    `main` accepts nothing without it.
