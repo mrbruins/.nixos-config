@@ -48,6 +48,8 @@ build() {
 
 switch() {
   local system
+  # Here, not only in build: that runs in a subshell, which cannot set REPO.
+  findRepo
   system="$(build "$@")"
   nix store diff-closures /run/current-system "$system" >&2 || true
   say "Activating"

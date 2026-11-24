@@ -34,6 +34,7 @@ with pkgs;
 
   # Media and documents
   ffmpeg
+  libreoffice-bin
   pandoc
   yt-dlp
 
