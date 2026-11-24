@@ -35,7 +35,7 @@
       flake = false;
     };
     # Captures and applies macOS settings for the *-settings apps only; never
-    # imported as a module, so build-switch doesn't apply settings. See README.
+    # imported as a module, so `rig switch` doesn't apply settings. See README.
     nix-plist-manager = {
       url = "github:sushydev/nix-plist-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -86,8 +86,7 @@
           (nixpkgs.legacyPackages.${system}.writeScriptBin scriptName ''
             #!/usr/bin/env bash
             PATH=${nixpkgs.legacyPackages.${system}.git}/bin:$PATH
-            echo "Running ${scriptName} for ${system}"
-            exec ${self}/apps/${system}/${scriptName}
+            exec ${self}/apps/${system}/${scriptName} "$@"
           '')
         }/bin/${scriptName}";
       };
@@ -119,9 +118,8 @@
           '')}/bin/${scriptName}";
         };
       mkDarwinApps = system: {
-        "build" = mkApp "build" system;
-        "build-switch" = mkApp "build-switch" system;
         "bootstrap" = mkApp "bootstrap" system;
+        "rig" = mkApp "rig" system;
         "rollback" = mkApp "rollback" system;
         "pin-known-good" = mkApp "pin-known-good" system;
         "capture-settings" = mkSettingsApp "capture-settings" system;

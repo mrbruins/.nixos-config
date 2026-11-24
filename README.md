@@ -14,7 +14,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 - [Home Manager](https://github.com/nix-community/home-manager) for user-level dotfiles (zsh, git, tmux, vim, etc.)
 - [nix-darwin](https://github.com/LnL7/nix-darwin) for macOS system management
 - [nix-homebrew](https://github.com/zhaofengli-wip/nix-homebrew) for declarative Homebrew cask management
-- [nix-plist-manager](https://github.com/sushydev/nix-plist-manager) to capture and re-apply macOS settings on demand, outside `build-switch` (see [macOS settings](#macos-settings))
+- [nix-plist-manager](https://github.com/sushydev/nix-plist-manager) to capture and re-apply macOS settings on demand, outside `rig switch` (see [macOS settings](#macos-settings))
 
 ## Repository Structure
 
@@ -176,47 +176,47 @@ multiplier.
 ### macOS
 
 ```bash
-# Build and activate (day-to-day usage)
-nix run .#build-switch
-
-# Build only, no activation
-nix run .#build
-
-# Roll back to a retained generation (lists them, asks which; or pass a number / "previous")
-nix run .#rollback
-
-# Pin the running system as known-good (kept as a GC root, last two)
-nix run .#pin-known-good
+rig build                 # build this Mac from the checkout, change nothing
+rig switch                # build and activate the checkout, whatever branch it is on
+rig update                # pull main, switch, update Homebrew and exempt tools, show drift
+rig drift                 # what is installed or running but not declared
+rig try ffmpeg            # a shell with a package, without installing it
+rig rollback previous     # or a generation number; without one it lists them and asks
+rig pin                   # keep the running system as known-good (GC root, last two)
+rig settings diff         # macOS settings, see below
 ```
 
-**Break glass (no GitHub, no network):** run the scripts directly, because `nix run` evaluates the
-flake: `~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
+Before `rig` is installed, use `nix run .#rig -- switch`. Try a change with `rig switch` on a branch, then open
+a PR; you do not have to wait for CI (ADR 0001).
+
+**Break glass (no GitHub, no network):** `rig rollback previous` needs neither. If `rig` itself is broken, run
+`~/.nixos-config/apps/aarch64-darwin/rollback previous`. Rolling back re-activates a retained
 generation without building anything. Homebrew and macOS changes are not reverted.
 
 ### macOS settings
 
 System Settings and selected app preferences are captured from a running Mac into `settings/` and applied
-back with a separate command. Nothing here is a nix-darwin or Home Manager module: `build-switch` never
+back with a separate command. Nothing here is a nix-darwin or Home Manager module: `rig switch` never
 writes these settings, so changing one in System Settings is not undone by the next switch. The repo is
 the record for bootstrapping a Mac, or for an app installed later.
 
 ```bash
 # Record this Mac's settings into the checkout (refuses on main or with uncommitted settings/)
-nix run .#capture-settings            # --ui: also read settings macOS doesn't store (opens System Settings)
+rig settings capture      # --ui: also read settings macOS doesn't store (opens System Settings)
                                       # --snapshots: also menu bar layout and wallpaper
 git diff -- settings                  # review, then commit and open a PR
 
 # What differs between this Mac and the checkout; writes nothing
-nix run .#settings-diff
+rig settings diff
 
 # Apply the committed settings: everything, one part of System Settings, or one app
-nix run .#apply-settings -- --dry-run
-nix run .#apply-settings
-nix run .#apply-settings -- --only applications.systemSettings.trackpad
-nix run .#apply-settings -- --only com.surteesstudios.Bartender
+rig settings apply --dry-run
+rig settings apply
+rig settings apply --only applications.systemSettings.trackpad
+rig settings apply --only com.surteesstudios.Bartender
 
 # Find the preference keys a setting writes (Ctrl-C to stop)
-nix run .#settings-watch -- com.surteesstudios.Bartender
+rig settings watch com.surteesstudios.Bartender
 ```
 
 The commands pick the host from the Mac's `LocalHostName`; pass `--host <name>` to override it.

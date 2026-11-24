@@ -7,7 +7,10 @@ in
 # Portable nix-darwin baseline shared by every Mac host (MacBook, Mac Studio).
 # Keep laptop- and GUI-specific settings in the host profiles.
 {
-  imports = [ ../shared ];
+  imports = [
+    ../shared
+    ./rig.nix
+  ];
 
   # Determinate manages the Nix installation; disable nix-darwin's management.
   nix.enable = false;

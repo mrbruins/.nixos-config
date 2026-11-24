@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply the repo's captured settings to this Mac. Never run by build-switch.
+# Apply the repo's captured settings to this Mac. Never run by `rig switch`.
 #
 #   nix run .#apply-settings -- [--host <name>] [--only <option prefix|app domain>] [--dry-run]
 #
