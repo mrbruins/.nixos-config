@@ -10,7 +10,6 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.curl
-      pkgs.gnused
       pkgs.hostname
       pkgs.util-linux
     ];
@@ -44,7 +43,7 @@ let
         printf 'Date: %s\r\n' "$(date --rfc-email)"
         printf 'Message-ID: <%s@%s>\r\n' "$(cat /proc/sys/kernel/random/uuid)" "''${from#*@}"
         printf 'Content-Type: text/plain; charset=utf-8\r\n\r\n'
-        sed 's/$/\r/' <<< "$message"
+        while IFS= read -r line; do printf '%s\r\n' "$line"; done <<< "$message"
       } > "$mail"
 
       # The password goes through a file descriptor, not the process list.
