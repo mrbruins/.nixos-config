@@ -21,6 +21,7 @@ rig drift                 list what is installed or running but not declared; ch
 rig rollback [gen]        re-activate a retained generation, offline
 rig pin                   keep the running system as known-good
 rig settings <command>    capture, diff, apply or watch macOS settings
+rig env <name>            use a language devshell in this project through direnv; without a name, list them
 rig docker [stop]         start the Docker VM, creating it the first time, or stop it
 rig link [option]         link the private dotfiles; --check, --adopt or --replace
 rig try <package>... [-- <command>]   use a package without installing it
@@ -168,6 +169,31 @@ docker_vm() {
   docker context use lima-docker
 }
 
+env_() {
+  local name="${1:-}" project
+  findRepo
+  if [[ -z "$name" ]]; then
+    nix eval --raw "$REPO#devShells.aarch64-darwin" --apply 's: builtins.concatStringsSep "\n" (builtins.attrNames s) + "\n"'
+    return
+  fi
+  nix eval --raw "$REPO#devShells.aarch64-darwin.$name.name" >/dev/null || die "no devshell called $name"
+  project="$(git rev-parse --show-toplevel 2>/dev/null)" || die "run this inside a project"
+  [[ "$project" != "$REPO" ]] || die "run this inside a project, not in $REPO"
+  [[ ! -e "$project/.envrc" ]] || die "$project already has an .envrc"
+  # Not REPO: the project should follow the usual checkout, not a worktree.
+  # shellcheck disable=SC2016 # direnv expands it
+  printf 'use flake "$HOME/.nixos-config#%s"\n' "$name" >"$project/.envrc"
+  # Ignored in this clone only, so the project itself does not change.
+  local exclude
+  exclude="$(git -C "$project" rev-parse --path-format=absolute --git-common-dir)/info/exclude"
+  mkdir -p "$(dirname "$exclude")"
+  for line in /.envrc /.direnv/; do
+    grep -qxF "$line" "$exclude" 2>/dev/null || echo "$line" >>"$exclude"
+  done
+  direnv allow "$project"
+  say "$project now uses the $name devshell"
+}
+
 try() {
   local packages=()
   while [[ $# -gt 0 && "$1" != -- ]]; do
@@ -194,6 +220,7 @@ case "$command" in
   rollback) exec "$APPS/rollback" "$@" ;;
   pin) exec "$APPS/pin-known-good" ;;
   docker) docker_vm "$@" ;;
+  env) env_ "$@" ;;
   link) link "$@" ;;
   try) try "$@" ;;
   settings)

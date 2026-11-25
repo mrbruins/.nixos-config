@@ -11,7 +11,6 @@ with pkgs;
   claude-code
   devenv
   git-credential-manager
-  golangci-lint
   nil # Nix language server (VS Code Personal - Nix profile)
   nixfmt # Nix formatter used by nil and `nix fmt`
 

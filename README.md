@@ -32,6 +32,7 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │       ├── nas.nix                  # NAS entry point; its parts are in nas/
 │       ├── agent-host.nix           # NixOS agent-host VM entry point
 │       └── agent-host/hardware.nix  # Placeholder VM hardware and disks
+├── devshells/              # language tools for projects without their own devshell
 ├── profiles/               # cli, workstation and server: what machines share
 ├── modules/
 │   ├── shared/             # Cross-platform system features
@@ -212,6 +213,7 @@ rig build                 # build this Mac from the checkout, change nothing
 rig switch                # build and activate the checkout, whatever branch it is on
 rig update                # pull main, switch, update Homebrew and exempt tools, show drift
 rig drift                 # what is installed or running but not declared
+rig env go                # use a language devshell in this project, through direnv
 rig docker                # start the Docker VM, creating it the first time (docs/docker.md)
 rig link                  # link the private dotfiles, cloning them first
 rig try ffmpeg            # a shell with a package, without installing it
@@ -294,7 +296,12 @@ nix flake check --all-systems --no-build
 
 Building `x86_64-linux` on a Mac needs a remote Linux builder.
 
-### Dev shell
+### Dev shells
+
+`devshells/` holds language tools (`go`, `node22`) for projects that do not bring their own. `rig env go` in a
+project writes an `.envrc` that only your clone ignores, so forks of other people's projects stay clean. In VS
+Code, the *direnv* extension (`mkhl.direnv`) makes editors use the same tools. The default shell is for working
+on this repository.
 
 Provides `bash` and `git`:
 

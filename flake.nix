@@ -77,7 +77,8 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        {
+        import ./devshells { inherit pkgs; }
+        // {
           default =
             with pkgs;
             mkShell {
