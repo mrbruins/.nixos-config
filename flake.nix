@@ -168,7 +168,6 @@
         ./hosts/darwin/MacBook-Pro-Michiel.nix
       ];
       macStudioConfiguration = mkDarwinSystem [
-        comin.darwinModules.comin
         ./hosts/darwin/Mac-Studio.nix
       ];
       mkNixosSystem =

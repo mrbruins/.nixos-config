@@ -145,7 +145,8 @@ Nothing here needs a secret, an SSH key or a checkout.
 1. Open 1Password, choose the QR code sign-in, and scan the code with 1Password on your iPhone. If the app
    does not offer it, use the Secret Key or the setup code from 1Password.com.
 2. In 1Password → Settings → Developer, turn on the SSH agent and the CLI integration.
-3. MacBook: run `rig link` to clone and link the private dotfiles. It needs the SSH agent from step 2.
+3. Clone this repository to `~/.nixos-config`, for `rig`. On the Studio, use `https://github.com/mrbruins/.nixos-config.git`,
+   which needs no key. On the MacBook, clone over SSH, then run `rig link` for the private dotfiles.
 4. Join the tailnet. On the MacBook, sign in to the Tailscale app. On the Studio, run `sudo tailscale up --qr`
    and scan the code; the new node is called `mac-studio`, so remove the old one in the admin console.
 5. Restore the captured macOS settings with `nix run github:mrbruins/.nixos-config#apply-settings`, if this
@@ -174,13 +175,12 @@ with read-only `contents` permission. It never activates a machine.
 
 ### Deployment
 
-The NixOS hosts and the Mac Studio run [comin](https://github.com/nlewo/comin), which builds `main` as it
-changes. Its `testing-<host>` branch is switched off, so nothing but `main` can reach a machine.
+The NixOS hosts run [comin](https://github.com/nlewo/comin), which builds `main` as it changes. Its `testing-<host>` branch is switched off, so nothing but `main` can reach a machine.
 
 | Machine | When it deploys |
 |---|---|
 | MacBook | Never by itself: `rig switch` or `rig update` |
-| Mac Studio | Only after `sudo comin confirmation accept`, while comin on macOS is on trial |
+| Mac Studio | Never by itself: `rig update`, at the machine or over SSH (ADR 0001) |
 | NAS | Sundays at 05:00, or sooner with `sudo comin confirmation accept` |
 | Agent host | As soon as it is built |
 
