@@ -16,12 +16,11 @@ in
 {
   imports = [
     ../../modules/darwin/base.nix
-    ../../profiles/pull.nix
   ];
 
   networking.hostName = "Mac-Studio";
 
-  # A sleeping Mac serves nothing: no SSH, comin or Ollama. The displays may
+  # A sleeping Mac serves nothing: no SSH or Ollama. The displays may
   # still sleep. After a power failure it starts, but waits at FileVault.
   power = {
     restartAfterPowerFailure = true;
@@ -30,11 +29,19 @@ in
 
   environment.systemPackages = [ pkgs.ollama ];
 
-  programs = {
-    # The app is there for the QR sign-in and the SSH agent.
-    _1password.enable = true;
-    _1password-gui.enable = true;
-  };
+  programs._1password.enable = true;
+
+  # The app is there for the QR sign-in and the SSH agent. It updates itself, so
+  # Nix only puts it there the first time. programs._1password-gui would replace
+  # it on every activation, which macOS refuses over SSH (App Management).
+  system.activationScripts.applications.text = lib.mkAfter ''
+    if [[ ! -e /Applications/1Password.app ]]; then
+      echo "installing 1Password..." >&2
+      /usr/bin/ditto ${pkgs._1password-gui}/Applications/1Password.app /Applications/1Password.app
+      /usr/sbin/chown -R ${user}:staff /Applications/1Password.app
+      /bin/chmod -R u+w /Applications/1Password.app
+    fi
+  '';
 
   services = {
     # Remote Login with keys only. After a cold boot macOS still accepts the
@@ -52,23 +59,6 @@ in
 
     # A system daemon, so the tailnet works before anyone logs in.
     tailscale.enable = true;
-  };
-
-  # comin on macOS is on trial: it builds main by itself, but deploys only after
-  # `sudo comin confirmation accept`.
-  services.comin.deployConfirmer.mode = "manual";
-
-  # Determinate manages Nix, so comin's own default (config.nix.package) does
-  # not exist here.
-  launchd.daemons.comin.serviceConfig.EnvironmentVariables = lib.mkForce {
-    PATH = lib.concatStringsSep ":" [
-      "/nix/var/nix/profiles/default/bin"
-      (lib.makeBinPath [
-        pkgs.git
-        pkgs.openssh
-      ])
-      "/usr/bin:/bin:/usr/sbin:/sbin"
-    ];
   };
 
   # Loopback only: LiteLLM access needs a firewall rule that admits only the

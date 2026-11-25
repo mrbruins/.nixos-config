@@ -4,7 +4,7 @@ Nix flake for Michiel's machines: nix-darwin for `MacBook-Pro-Michiel` and `Mac-
 
 ## Ground rules
 
-- **Build, never activate.** Agents evaluate and build. Activation (`rig switch`, `rig update`, `rig rollback`, `darwin-rebuild switch`, `nixos-rebuild switch`, `bootstrap`) is a human action. The MacBook's user may activate any branch; always-on machines will pull `main`, so for them a reviewed merge is the only path (docs/adr/0001-macbook-does-not-pull.md).
+- **Build, never activate.** Agents evaluate and build. Activation (`rig switch`, `rig update`, `rig rollback`, `darwin-rebuild switch`, `nixos-rebuild switch`, `bootstrap`) is a human action. The MacBook's user may activate any branch, and the Studio's runs `rig update` from `main`; always-on NixOS machines will pull `main`, so for them a reviewed merge is the only path (docs/adr/0001-macbook-does-not-pull.md).
 - **Public repository.** Everything committed here is world-readable, including the Nix store paths it produces. Secrets live only in 1Password; nothing here needs one to build or activate. Public keys and hostnames are fine.
 - **Branch and PR.** Work on a branch and open a PR against `main`. CI (`.github/workflows/nix-checks.yml`) must pass. Never push to `main` directly.
 

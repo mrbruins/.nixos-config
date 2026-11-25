@@ -48,8 +48,15 @@ build() {
   nix build "$REPO#darwinConfigurations.$HOST.system" --no-link --print-out-paths "$@"
 }
 
+# A running shell keeps its old aliases, and rig cannot reach into it.
+shellHint() {
+  [[ "$ZSHRC_BEFORE" == "$(readlink -f "$HOME/.zshrc" || true)" ]] \
+    || say "The shell configuration changed. In open terminals, run: unalias -m '*'; source ~/.zshrc"
+}
+
 switch() {
   local system
+  ZSHRC_BEFORE="$(readlink -f "$HOME/.zshrc" || true)"
   # Here, not only in build: that runs in a subshell, which cannot set REPO.
   findRepo
   system="$(build "$@")"
@@ -75,6 +82,7 @@ update() {
     say "Claude Code"
     "$HOME/.local/bin/claude" update
   fi
+  shellHint
   # The rig just activated: this one still has the old list of declarations.
   exec /run/current-system/sw/bin/rig drift
 }
@@ -215,7 +223,7 @@ command="${1:-help}"
 [[ $# -eq 0 ]] || shift
 case "$command" in
   build) build "$@" ;;
-  switch) switch "$@" ;;
+  switch) switch "$@"; shellHint ;;
   update) update ;;
   drift) drift ;;
   rollback) exec "$APPS/rollback" "$@" ;;
