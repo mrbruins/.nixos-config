@@ -120,25 +120,29 @@ EOF
       username = user;
       entries = [
         { path = "/System/Applications/Messages.app/"; }
-        { path = "/System/Applications/Facetime.app/"; }
+        { path = "/System/Applications/FaceTime.app/"; }
         { path = "/System/Applications/Music.app/"; }
         { path = "/System/Applications/Photos.app/"; }
         { path = "/System/Applications/TV.app/"; }
         { path = "/System/Applications/Home.app/"; }
-        { path = "/Applications/Safari.app/"; }
+        # Where macOS really keeps Safari, and how the Dock lists it.
+        { path = "/System/Volumes/Preboot/Cryptexes/App/System/Applications/Safari.app/"; }
         { path = "/Applications/Warp.app/"; }
         { path = "/Applications/Microsoft Outlook.app/"; }
         { path = "/Applications/Microsoft Teams.app/"; }
         { path = "/Applications/Microsoft To Do.app/"; }
         { path = "/Users/michielbruins/Applications/OI.app/"; }
         { path = "/Applications/Slack.app"; }
+        { path = "/System/Applications/Utilities/Screen Sharing.app/"; }
+        { path = "/Applications/Claude.app/"; }
+        { path = "/Applications/Firefox Developer Edition.app/"; }
         {
-          path = "${config.users.users.${user}.home}/Documents";
+          path = "${config.users.users.${user}.home}/Documents/";
           section = "others";
           options = "--sort name --view grid --display folder";
         }
         {
-          path = "${config.users.users.${user}.home}/Downloads";
+          path = "${config.users.users.${user}.home}/Downloads/";
           section = "others";
           options = "--sort name --view grid --display stack";
         }

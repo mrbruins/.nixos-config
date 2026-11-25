@@ -75,7 +75,8 @@ update() {
     say "Claude Code"
     "$HOME/.local/bin/claude" update
   fi
-  drift
+  # The rig just activated: this one still has the old list of declarations.
+  exec /run/current-system/sw/bin/rig drift
 }
 
 # section <title>: prints stdin as a list, or nothing when it is empty.
