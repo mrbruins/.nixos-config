@@ -80,8 +80,8 @@ flowchart TD
 `modules/darwin/base.nix` holds the settings every Mac shares (Determinate-managed Nix, primary user, state
 version, shared modules). Laptop and GUI settings stay in the MacBook profile. The Mac Studio leaves
 out Homebrew, casks, Mac App Store apps, dock and input settings. It adds key-only Remote Login, Tailscale,
-1Password and a loopback-only Ollama, and does not touch SIP, Gatekeeper, FileVault, Screen Sharing or power
-settings. NixOS hosts do not import `modules/shared`.
+1Password and a loopback-only Ollama, never sleeps, and restarts after a power failure. It does not touch SIP,
+Gatekeeper, FileVault or Screen Sharing. NixOS hosts do not import `modules/shared`.
 
 ### Flake outputs
 
@@ -156,8 +156,8 @@ Nothing here needs a secret, an SSH key or a checkout.
    account password once, unlocks FileVault and disconnects; the next connection uses your key. Do this while
    you can still reach the keyboard.
 
-On the Studio, Screen Sharing, sleep settings and login items are not managed, because going headless is
-deferred. Ollama runs as a system service on `127.0.0.1:11434`, with no models.
+On the Studio, Screen Sharing and login items are not managed, because going headless is deferred. After a power
+failure it starts by itself, then waits at FileVault for step 7's password. Ollama runs as a system service on `127.0.0.1:11434`, with no models.
 
 ## CI
 

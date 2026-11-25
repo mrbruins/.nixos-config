@@ -15,6 +15,8 @@
       direnv = {
         enable = true;
         nix-direnv.enable = true;
+        # A devshell sets some sixty variables; do not list them on every cd.
+        config.global.hide_env_diff = true;
       };
     }
   ];

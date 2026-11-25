@@ -11,9 +11,8 @@ in
 # - Dock, trackpad, keyboard and Touch ID settings.
 # - The workstation profile.
 #
-# Going headless is deferred, so Screen Sharing, power/sleep settings and login
-# items stay under human control. So do FileVault, SIP and Gatekeeper, which
-# must stay on.
+# Going headless is deferred, so Screen Sharing and login items stay under human
+# control. So do FileVault, SIP and Gatekeeper, which must stay on.
 {
   imports = [
     ../../modules/darwin/base.nix
@@ -21,6 +20,13 @@ in
   ];
 
   networking.hostName = "Mac-Studio";
+
+  # A sleeping Mac serves nothing: no SSH, comin or Ollama. The displays may
+  # still sleep. After a power failure it starts, but waits at FileVault.
+  power = {
+    restartAfterPowerFailure = true;
+    sleep.computer = "never";
+  };
 
   environment.systemPackages = [ pkgs.ollama ];
 
