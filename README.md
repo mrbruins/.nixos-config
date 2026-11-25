@@ -211,6 +211,7 @@ rig build                 # build this Mac from the checkout, change nothing
 rig switch                # build and activate the checkout, whatever branch it is on
 rig update                # pull main, switch, update Homebrew and exempt tools, show drift
 rig drift                 # what is installed or running but not declared
+rig docker                # start the Docker VM, creating it the first time (docs/docker.md)
 rig link                  # link the private dotfiles, cloning them first
 rig try ffmpeg            # a shell with a package, without installing it
 rig rollback previous     # or a generation number; without one it lists them and asks
@@ -307,7 +308,7 @@ ZSH is the default interactive shell. It is configured entirely through [Home Ma
 | Layer | File | Purpose |
 |---|---|---|
 | Core (shared) | `profiles/cli/programs.nix` | ZSH enable, aliases, init script, integrations |
-| macOS additions | `modules/darwin/home-manager.nix` | Login shell, Docker/Lima aliases |
+| macOS additions | `modules/darwin/home-manager.nix` | Login shell, `truenas-docker` alias |
 | Shared system | `modules/shared/shell.nix` | System-level `programs.zsh.enable` |
 
 ### Initialization
@@ -345,7 +346,7 @@ The `initContent` block (prepended to `.zshrc`) handles:
 Defined in `modules/darwin/home-manager.nix`:
 
 - Shell is set to `pkgs.zsh` in `users.users.${user}`
-- Extra aliases: `docker` and `nerdctl` → `lima nerdctl` (Lima container runtime)`
+- Extra alias: `truenas-docker`, the Docker CLI on the NAS
 
 ## Adding Packages
 

@@ -16,8 +16,7 @@ with pkgs;
   nixfmt # Nix formatter used by nil and `nix fmt`
 
   # Containers
-  docker-client # Docker CLI for use with Lima socket
-  lima
+  docker-client # talks to the Lima VM; see docs/docker.md. Lima itself comes with devvm.
 
   # Runtimes
   bun

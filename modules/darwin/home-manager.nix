@@ -80,7 +80,6 @@ in
         enableNixpkgsReleaseCheck = false;
         stateVersion = "23.11";
         sessionVariables = {
-          # DOCKER_HOST = "unix://${config.home.homeDirectory}/.lima/docker/sock/docker.sock";
           SSH_AUTH_SOCK = "~/Library/Group\\ Containers/2BUA8C4S2C.com.1password/t/agent.sock";
 
           # Claude Code can't build the Google Trust Services chain from the
@@ -104,8 +103,6 @@ EOF
           eval "$(op completion zsh)"; compdef _op op
         '';
         shellAliases = {
-          docker = "lima nerdctl";
-          nerdctl = "lima nerdctl";
           truenas-docker = "env -u DOCKER_HOST -u DOCKER_CONTEXT ${pkgs.docker}/bin/docker --context truenas";
         };
       };
