@@ -236,6 +236,7 @@
         x86_64-linux = {
           "agent-host" = agentHostConfiguration.config.system.build.toplevel;
           "nas" = nasConfiguration.config.system.build.toplevel;
+          "nas-alerts" = import ./tests/nas-alerts.nix { pkgs = nixpkgs-stable.legacyPackages.x86_64-linux; };
           "nas-storage" = import ./tests/nas-storage.nix {
             pkgs = nixpkgs-stable.legacyPackages.x86_64-linux;
           };

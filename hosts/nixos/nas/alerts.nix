@@ -1,22 +1,56 @@
 { pkgs, ... }:
 
 let
-  # Posts stdin to the URL in /etc/nas/alert-url (ntfy, or any webhook that
-  # takes plain text). The file is placed by hand. Without it, alerts only
-  # reach the journal.
+  # Mails stdin. Uses nothing that runs on the NAS itself. The account is in
+  # /etc/nas/mail, placed by hand from 1Password (docs/nas-cutover.md), so it
+  # is neither in the repository nor in the Nix store. Every alert also goes to
+  # the journal.
   nas-alert = pkgs.writeShellApplication {
     name = "nas-alert";
     runtimeInputs = [
+      pkgs.coreutils
       pkgs.curl
+      pkgs.gnused
+      pkgs.hostname
       pkgs.util-linux
     ];
     text = ''
+      # smartd and ZED pass mail(1) arguments; only the text matters.
       message="$(cat)"
-      logger --tag nas-alert --priority daemon.warning -- "$message"
-      if [[ -r /etc/nas/alert-url ]]; then
-        curl --fail --silent --show-error --max-time 20 \
-          --data-binary "$message" "$(< /etc/nas/alert-url)"
+      logger --tag nas-alert --priority daemon.warning -- "$message" || true
+
+      if [[ ! -r /etc/nas/mail ]]; then
+        echo "nas-alert: /etc/nas/mail is missing, alert not mailed" >&2
+        exit 1
       fi
+      server=smtp://smtp.mail.me.com:587 # STARTTLS, required below
+      user="" password="" from="" to=""
+      while IFS='=' read -r key value; do
+        case "$key" in
+          server) server="$value" ;;
+          user) user="$value" ;;
+          password) password="$value" ;;
+          from) from="$value" ;;
+          to) to="$value" ;;
+        esac
+      done < /etc/nas/mail
+
+      subject="$(head -n 1 <<< "$message" | tr -d '\r' | cut -c 1-120)"
+      mail="$(mktemp)"
+      trap 'rm -f "$mail"' EXIT
+      {
+        printf 'From: %s\r\nTo: %s\r\n' "$from" "$to"
+        printf 'Subject: [%s] %s\r\n' "$(hostname)" "''${subject:-alert}"
+        printf 'Date: %s\r\n' "$(date --rfc-email)"
+        printf 'Message-ID: <%s@%s>\r\n' "$(cat /proc/sys/kernel/random/uuid)" "''${from#*@}"
+        printf 'Content-Type: text/plain; charset=utf-8\r\n\r\n'
+        sed 's/$/\r/' <<< "$message"
+      } > "$mail"
+
+      # The password goes through a file descriptor, not the process list.
+      curl --silent --show-error --max-time 60 --retry 3 --retry-all-errors \
+        --ssl-reqd --url "$server" --config <(printf 'user = "%s:%s"\n' "$user" "$password") \
+        --mail-from "$from" --mail-rcpt "$to" --upload-file "$mail"
     '';
   };
 in
@@ -54,11 +88,24 @@ in
       serviceConfig.Type = "oneshot";
       scriptArgs = "%i";
       script = ''
-        echo "$1 failed on $(cat /proc/sys/kernel/hostname)" | ${nas-alert}/bin/nas-alert
+        echo "$1 failed" | ${nas-alert}/bin/nas-alert
       '';
     };
     sanoid.onFailure = [ "nas-alert@%n.service" ];
     docker.onFailure = [ "nas-alert@%n.service" ];
     zfs-mount.onFailure = [ "nas-alert@%n.service" ];
+    # A monthly sign of life, so silence means something.
+    nas-alert-monthly = {
+      description = "Mail a monthly status report";
+      startAt = "*-*-01 09:00";
+      serviceConfig.Type = "oneshot";
+      path = [
+        nas-alert
+        pkgs.zfs
+      ];
+      script = ''
+        { echo "Monthly status"; zpool status; zpool list; } | nas-alert
+      '';
+    };
   };
 }

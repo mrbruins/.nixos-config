@@ -25,6 +25,8 @@ Docker; step 6 erases its boot disk.
   routes the subnet.
 - Boot-test the NixOS stick: start the NAS from it once, up to the boot menu, then boot TrueNAS again. Not while a
   copy is running.
+- Mail for alerts: at account.apple.com → Sign-In and Security → App-Specific Passwords, create one called `nas` and
+  store it in 1Password with the sender address.
 - Have a screen and keyboard on the NAS. SSH and DNS will be down.
 - Merge and build the `nas` host. CI must be green.
 
@@ -122,8 +124,17 @@ systemctl --failed
 sudo chown michielbruins:michielbruins /mnt/Lewis/photos /mnt/Lewis/videos
 sudo smbpasswd -a michielbruins
 sudo tailscale up --qr
-sudo install -d -m 0750 /etc/nas && sudo install -m 0600 /dev/stdin /etc/nas/alert-url   # paste the URL, Ctrl-D
-echo "test" | sudo nas-alert
+sudo install -d -m 0700 /etc/nas && sudo install -m 0600 /dev/stdin /etc/nas/mail   # paste, Enter, Ctrl-D
+echo "test" | sudo nas-alert        # a mail has to arrive
+```
+
+Paste this into `/etc/nas/mail`, with the values from 1Password:
+
+```
+user=<your full iCloud address>
+password=<app-specific password>
+from=<an address on your own domain that iCloud Mail may send from>
+to=<where alerts should go>
 ```
 
 The old SSH host key is gone, so remove it with `ssh-keygen -R` on your machines. Never run `zpool upgrade`.

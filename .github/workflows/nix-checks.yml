@@ -60,6 +60,9 @@ jobs:
           - host: nas
             system: x86_64-linux
             runner: ubuntu-latest # x86_64
+          - host: nas-alerts # VM test
+            system: x86_64-linux
+            runner: ubuntu-latest # x86_64
           - host: nas-storage # VM test
             system: x86_64-linux
             runner: ubuntu-latest # x86_64
