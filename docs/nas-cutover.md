@@ -90,7 +90,8 @@ which exports the pools.
 
 ## 5. Read-only import test
 
-Boot the NixOS stick. Nothing below writes to a pool:
+Boot the NixOS stick and choose **Installer (Linux LTS)**. The other entry has a newer kernel without ZFS.
+Nothing below writes to a pool:
 
 ```bash
 sudo -i
