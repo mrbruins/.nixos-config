@@ -91,6 +91,7 @@ settings. NixOS hosts do not import `modules/shared`.
 | `nixosConfigurations.{nas,agent-host}` | NAS and agent-host VM systems |
 | `checks.aarch64-darwin.{MacBook-Pro-Michiel,Mac-Studio}` | Darwin system closures |
 | `checks.x86_64-linux.{nas,agent-host,linux-cli}` | NixOS system closures and the CLI profile on Linux |
+| `checks.x86_64-linux.nas-alerts` | VM test: an alert becomes a mail |
 | `checks.x86_64-linux.nas-storage` | VM test: TrueNAS-style pools, Docker and Samba after a boot |
 | `homeConfigurations."michielbruins@{x86_64,aarch64}-linux"` | The CLI profile on a Linux machine this repository does not manage |
 | `apps`, `devShells`, `formatter` | Imperative scripts (including the [settings apps](#macos-settings)), dev shell, `nixfmt` |
