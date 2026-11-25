@@ -187,7 +187,8 @@ changes. Its `testing-<host>` branch is switched off, so nothing but `main` can 
 ### Updates
 
 `.github/workflows/update-lock.yml` opens a pull request every Monday that moves each branch-tracking input to
-the newest revision that has been public for seven days, and lets it merge once the required checks pass. Run
+the newest revision that has been public for seven days. GitHub waits for a person to click *Approve workflows
+to run* on it; then it merges itself once the required checks pass. Run
 it by hand with `gh workflow run update-lock.yml`. Inputs pinned to a version stay put until a person moves
 them: `determinate` (together with `apps/aarch64-darwin/bootstrap`), `homebrew-brew`, `comin` and `disko`. To skip the
 cooldown for an urgent fix, run `nix flake update <input>` on a branch.
