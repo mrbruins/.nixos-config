@@ -28,6 +28,7 @@ with pkgs;
   az-pim-cli # Azure AD Privileged Identity Management CLI; uses the `az` login
 
   # AI
+  codebase-memory-mcp
   github-copilot-cli
 
   # Media and documents
