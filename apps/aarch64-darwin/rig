@@ -21,6 +21,7 @@ rig drift                 list what is installed or running but not declared; ch
 rig rollback [gen]        re-activate a retained generation, offline
 rig pin                   keep the running system as known-good
 rig settings <command>    capture, diff, apply or watch macOS settings
+rig docker [stop]         start the Docker VM, creating it the first time, or stop it
 rig link [option]         link the private dotfiles; --check, --adopt or --replace
 rig try <package>... [-- <command>]   use a package without installing it
 
@@ -148,6 +149,25 @@ link() {
   exec "$DOTFILES/link" "$@"
 }
 
+docker_vm() {
+  local lima=/opt/homebrew/bin/limactl vm=docker
+  [[ -x "$lima" ]] || die "Lima is missing; it comes with devvm (rig switch)"
+  if [[ "${1:-}" == stop ]]; then
+    exec "$lima" stop "$vm"
+  fi
+  if "$lima" list --quiet | grep -qx "$vm"; then
+    "$lima" start --tty=false "$vm"
+  else
+    # Containers see ~/dev and nothing else of the home directory.
+    say "Creating the Docker VM"
+    mkdir -p "$HOME/dev"
+    "$lima" start --tty=false --name="$vm" --cpus=4 --memory=6 --disk=60 --mount-only="$HOME/dev:w" template:docker
+  fi
+  docker context inspect lima-docker >/dev/null 2>&1 \
+    || docker context create lima-docker --docker "host=unix://$HOME/.lima/$vm/sock/docker.sock"
+  docker context use lima-docker
+}
+
 try() {
   local packages=()
   while [[ $# -gt 0 && "$1" != -- ]]; do
@@ -173,6 +193,7 @@ case "$command" in
   drift) drift ;;
   rollback) exec "$APPS/rollback" "$@" ;;
   pin) exec "$APPS/pin-known-good" ;;
+  docker) docker_vm "$@" ;;
   link) link "$@" ;;
   try) try "$@" ;;
   settings)
