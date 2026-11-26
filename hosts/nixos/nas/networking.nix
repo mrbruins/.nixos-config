@@ -12,6 +12,14 @@ _:
     firewall = {
       extraCommands = "iptables -I FORWARD -i br0 -o br0 -j ACCEPT";
       extraStopCommands = "iptables -D FORWARD -i br0 -o br0 -j ACCEPT 2>/dev/null || true";
+
+      # Containers on Traefik's own network (cloudflared, for one) reach it at
+      # 192.168.2.20 through docker-proxy, which this firewall sees as input
+      # from a Docker bridge. The LAN is DNATed by Docker and never gets here.
+      interfaces."br-+".allowedTCPPorts = [
+        80
+        443
+      ];
     };
   };
 
