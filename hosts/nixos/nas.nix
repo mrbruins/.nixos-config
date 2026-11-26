@@ -21,6 +21,10 @@ in
     ./nas/updates.nix
   ];
 
+  # As on TrueNAS and in the stacks. Without it /etc/localtime is missing, and
+  # Docker creates it as a directory for containers that bind-mount it.
+  time.timeZone = "Europe/Amsterdam";
+
   boot.loader = {
     systemd-boot = {
       enable = true;
