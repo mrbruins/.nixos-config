@@ -6,7 +6,7 @@ Cut over on 26 November 2026: steps 2 to 6 are done, and the NAS runs NixOS from
 
 Still open:
 
-- **Mail alerts** (steps 1 and 7): no app-specific password and no `/etc/nas/mail` yet. Until then a
+- **Mail alerts** (steps 1 and 7): no Cloudflare mail token and no `/etc/nas/mail` yet. Until then a
   failing disk, pool or deployment alerts no one.
 - **Home Assistant by name** (step 8): the router answers `homeassistant.m11s.nl` with the VM itself,
   because the VM registers that name over DHCP, so browsers miss Traefik. Rename the VM's hostname or add a
@@ -42,8 +42,13 @@ Docker; step 6 erases its boot disk.
   routes the subnet.
 - Boot-test the NixOS stick: start the NAS from it once, up to the boot menu, then boot TrueNAS again. Not while a
   copy is running.
-- Mail for alerts: at account.apple.com → Sign-In and Security → App-Specific Passwords, create one called `nas` and
-  store it in 1Password with the sender address.
+- Mail for alerts, through Cloudflare Email Service (the domain's DNS is at Cloudflare):
+  1. Compute → Email Service → Email Sending → Onboard Domain → `m11s.nl`. It adds SPF, DKIM and DMARC records
+     on the `cf-bounce` subdomain. Keep the domain's existing DMARC record (`_dmarc`, `p=reject`, for iCloud
+     Mail); don't let it be replaced. Cloudflare's mail still passes it, because it signs for a subdomain.
+  2. Email Service → Destination addresses: add the address alerts go to, and confirm the mail Cloudflare sends.
+     Without the Workers Paid plan, mail only goes to verified destination addresses, and those are free.
+  3. Manage Account → Account API Tokens → Create Token → Custom: one permission, **Email Sending → Edit**. Name it `nas-alerts` and store it in 1Password. It can send mail and nothing else.
 - Have a screen and keyboard on the NAS. SSH and DNS will be down.
 - Merge and build the `nas` host. CI must be green.
 
@@ -149,9 +154,8 @@ echo "test" | sudo nas-alert        # a mail has to arrive
 Paste this into `/etc/nas/mail`, with the values from 1Password:
 
 ```
-user=<your full iCloud address>
-password=<app-specific password>
-from=<an address on your own domain that iCloud Mail may send from>
+password=<the nas-alerts API token>
+from=nas@m11s.nl
 to=<where alerts should go>
 ```
 
