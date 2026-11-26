@@ -1,5 +1,22 @@
 # NAS cutover: TrueNAS to NixOS
 
+## Status
+
+Cut over on 26 November 2026: steps 2 to 6 are done, and the NAS runs NixOS from `main`.
+
+Still open:
+
+- **Mail alerts** (steps 1 and 7): no app-specific password and no `/etc/nas/mail` yet. Until then a
+  failing disk, pool or deployment alerts no one.
+- **Home Assistant by name** (step 8): the router answers `homeassistant.m11s.nl` with the VM itself,
+  because the VM registers that name over DHCP, so browsers miss Traefik. Rename the VM's hostname or add a
+  record in UniFi.
+- **Time zone:** merge [#36](https://github.com/mrbruins/.nixos-config/pull/36), then on the NAS
+  `sudo rmdir /etc/localtime && sudo comin confirmation accept`. Until then `stash` does not start.
+- **Not checked by an agent:** the four shares from a Mac, and the Passport scrub after step 3.
+- **Keep for now:** the Passport, the Elements and the TrueNAS USB drive with the configuration file. They are
+  the way back until the NAS has run for a while and backups run from it.
+
 Every step here is done by a person. Steps 1 to 5 change nothing on TrueNAS except snapshots and a stopped
 Docker; step 6 erases its boot disk.
 
