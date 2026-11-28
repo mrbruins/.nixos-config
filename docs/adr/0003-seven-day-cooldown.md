@@ -2,7 +2,7 @@
 
 Nothing is installed until it has been public for seven days: flake inputs, npm, PyPI and Bun packages, and container images. Most malicious releases are noticed within days, while security fixes still arrive weekly without manual work. Lock updates that are old enough merge by themselves once builds pass.
 
-Exempt tools are named explicitly; today they are Claude Code and t3-code, which release daily and are wanted daily, and Cloudflare's `cf` CLI, which is in active pre-release development. `cf` is packaged in `pkgs/cf` and bumped by hand to its latest release. A person can always skip the cooldown for one update.
+Exempt tools are named explicitly; today they are Claude Code and t3-code, which release daily and are wanted daily, and Cloudflare's `cf` CLI, which is in active pre-release development. On the MacBook, `rig update` installs `cf` from npm at its latest release, declared in the workstation profile. A person can always skip the cooldown for one update.
 
 ## Considered options
 
