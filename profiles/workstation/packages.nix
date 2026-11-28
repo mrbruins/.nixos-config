@@ -26,7 +26,7 @@ with pkgs;
 
   # Cloud (the Azure CLI itself is the `azure-cli` cask in modules/darwin/casks.nix)
   az-pim-cli # Azure AD Privileged Identity Management CLI; uses the `az` login
-  (callPackage ../../pkgs/cf/package.nix { }) # Cloudflare's `cf` CLI from npm, packaged here
+  # Cloudflare's `cf` CLI comes from npm through `rig update`; see default.nix.
 
   # AI
   codebase-memory-mcp

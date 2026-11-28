@@ -38,7 +38,6 @@ A Nix flake managing **macOS** (nix-darwin) and **NixOS** system configuration f
 │   ├── shared/             # Cross-platform system features
 │   └── darwin/             # macOS-only config (base, casks, dock)
 ├── overlays/               # Custom nixpkgs overlays (auto-loaded when present)
-├── pkgs/                   # Packages not in nixpkgs (cf), called explicitly where used
 ├── settings/               # Captured macOS settings, applied only by apply-settings
 │   ├── <host>/system.nix   # System Settings per Mac, written by capture-settings
 │   ├── shared.nix          # Optional, hand-written: settings both Macs share

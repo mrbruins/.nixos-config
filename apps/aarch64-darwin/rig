@@ -82,9 +82,28 @@ update() {
     say "Claude Code"
     "$HOME/.local/bin/claude" update
   fi
+  npmTools
   shellHint
   # The rig just activated: this one still has the old list of declarations.
   exec /run/current-system/sw/bin/rig drift
+}
+
+# Exempt npm tools, declared one per line by a Home Manager profile. Each is
+# installed at its latest release, past the cooldown, and linked into ~/.local/bin.
+NPM_TOOLS="$HOME/.config/rig/npm-tools"
+NPM_PREFIX="$HOME/.local/share/rig/npm"
+
+npmTools() {
+  local tool
+  [[ -s "$NPM_TOOLS" ]] || return 0
+  command -v npm >/dev/null || die "npm is not on PATH; it comes with the workstation profile"
+  while IFS= read -r tool; do
+    [[ -n "$tool" ]] || continue
+    say "$tool (npm)"
+    npm install --global --prefix "$NPM_PREFIX" --min-release-age=0 --ignore-scripts --no-fund --no-audit "$tool@latest"
+    mkdir -p "$HOME/.local/bin"
+    ln -sfn "$NPM_PREFIX/bin/$tool" "$HOME/.local/bin/$tool"
+  done <"$NPM_TOOLS"
 }
 
 # section <title>: prints stdin as a list, or nothing when it is empty.
@@ -118,9 +137,11 @@ drift() {
   done
   find "$HOME/.local/share/uv/tools" -maxdepth 1 -mindepth 1 -type d ! -name '.*' -exec basename {} \; 2>/dev/null \
     | sort | section "uv tools"
-  # Claude Code is an exempt tool with its own updater.
+  # Claude Code and the npm tools are exempt tools that rig update installs.
+  local exempt
+  exempt="$(printf 'claude\n'; cat "$NPM_TOOLS" 2>/dev/null || true)"
   for prefix in "$HOME/.local/bin" "$HOME/go/bin" "$HOME/.cargo/bin" "$HOME/.bun/bin"; do
-    executables "$prefix" | { grep -vx claude || true; } | section "Programs in $prefix"
+    executables "$prefix" | { grep -vxF "$exempt" || true; } | section "Programs in $prefix"
   done
   for prefix in "$HOME/.nvm/versions/node" "$HOME/.pyenv/versions"; do
     find "$prefix" -maxdepth 1 -mindepth 1 -exec basename {} \; 2>/dev/null | sort | section "Runtimes in $prefix"
