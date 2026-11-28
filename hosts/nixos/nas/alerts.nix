@@ -22,8 +22,10 @@ let
         echo "nas-alert: /etc/nas/mail is missing, alert not mailed" >&2
         exit 1
       fi
-      server=smtp://smtp.mail.me.com:587 # STARTTLS, required below
-      user="" password="" from="" to=""
+      # Cloudflare Email Service: implicit TLS only, and the login is the
+      # literal user name api_token with a send-only API token as password.
+      server=smtps://smtp.mx.cloudflare.net:465
+      user=api_token password="" from="" to=""
       while IFS='=' read -r key value; do
         case "$key" in
           server) server="$value" ;;

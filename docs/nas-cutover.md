@@ -6,13 +6,8 @@ Cut over on 26 November 2026: steps 2 to 6 are done, and the NAS runs NixOS from
 
 Still open:
 
-- **Mail alerts** (steps 1 and 7): no app-specific password and no `/etc/nas/mail` yet. Until then a
-  failing disk, pool or deployment alerts no one.
-- **Home Assistant by name** (step 8): the router answers `homeassistant.m11s.nl` with the VM itself,
-  because the VM registers that name over DHCP, so browsers miss Traefik. Rename the VM's hostname or add a
-  record in UniFi.
-- **Time zone:** merge [#36](https://github.com/mrbruins/.nixos-config/pull/36), then on the NAS
-  `sudo rmdir /etc/localtime && sudo comin confirmation accept`. Until then `stash` does not start.
+- **Mail alerts** (steps 1 and 7): Cloudflare is set up (step 1); `/etc/nas/mail` is not written yet. Until
+  then a failing disk, pool or deployment alerts no one.
 - **Not checked by an agent:** the four shares from a Mac, and the Passport scrub after step 3.
 - **Keep for now:** the Passport, the Elements and the TrueNAS USB drive with the configuration file. They are
   the way back until the NAS has run for a while and backups run from it.
@@ -42,8 +37,13 @@ Docker; step 6 erases its boot disk.
   routes the subnet.
 - Boot-test the NixOS stick: start the NAS from it once, up to the boot menu, then boot TrueNAS again. Not while a
   copy is running.
-- Mail for alerts: at account.apple.com → Sign-In and Security → App-Specific Passwords, create one called `nas` and
-  store it in 1Password with the sender address.
+- Mail for alerts, through Cloudflare Email Service (the domain's DNS is at Cloudflare). Done on 28 November 2026:
+  1. Email Service → Email Sending → sending subdomain `alerts.m11s.nl`. Its SPF, DKIM, return-path MX and
+     `_dmarc.alerts` records live under that subdomain, so the apex's iCloud MX, SPF and DMARC are untouched.
+  2. Email Routing → Destination addresses: the address alerts go to, verified. The account is in
+     `verified_only` recipient mode, so mail only goes to verified addresses, and those sends are free.
+  3. An account API token `nas-alerts` with one permission, **Email Sending → Edit**, stored in 1Password. It
+     can send mail and nothing else.
 - Have a screen and keyboard on the NAS. SSH and DNS will be down.
 - Merge and build the `nas` host. CI must be green.
 
@@ -149,9 +149,8 @@ echo "test" | sudo nas-alert        # a mail has to arrive
 Paste this into `/etc/nas/mail`, with the values from 1Password:
 
 ```
-user=<your full iCloud address>
-password=<app-specific password>
-from=<an address on your own domain that iCloud Mail may send from>
+password=<the nas-alerts API token>
+from=nas@alerts.m11s.nl
 to=<where alerts should go>
 ```
 
